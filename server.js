@@ -1,0 +1,153 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const fs = require('fs');
+const path = require('path');
+const bcrypt = require('bcryptjs');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.use(express.static('public'));
+app.use(express.json());
+
+const USER_DB_PATH = path.join(__dirname, 'database', 'users.json');
+
+function loadUsers() {
+    if (!fs.existsSync(USER_DB_PATH)) {
+        const dir = path.dirname(USER_DB_PATH);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(USER_DB_PATH, JSON.stringify({}));
+    }
+    return JSON.parse(fs.readFileSync(USER_DB_PATH, 'utf8'));
+}
+
+function saveUsers(users) {
+    fs.writeFileSync(USER_DB_PATH, JSON.stringify(users, null, 2));
+}
+
+const activeUsers = {};
+
+app.post('/api/register', async (req, res) => {
+    const { username, password, gender } = req.body;
+    const users = loadUsers();
+
+    if (!username || !password) return res.json({ success: false, message: "Fill all fields" });
+    if (users[username.toLowerCase()]) return res.json({ success: false, message: "Username taken!" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    users[username.toLowerCase()] = {
+        username: username,
+        password: hashedPassword,
+        profile: {
+            gender: gender || 'male',
+            age: '',
+            city: '',
+            about: 'Ahoj!'
+        }
+    };
+
+    saveUsers(users);
+    res.json({ success: true });
+});
+
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    const users = loadUsers();
+    const user = users[username?.toLowerCase()];
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.json({ success: false, message: "Invalid username or password" });
+    }
+
+    res.json({ success: true, username: user.username, profile: user.profile });
+});
+
+app.post('/api/profile/update', (req, res) => {
+    const { username, age, city, about, gender } = req.body;
+    const users = loadUsers();
+
+    if (users[username?.toLowerCase()]) {
+        users[username.toLowerCase()].profile = {
+            age: age || '',
+            city: city || '',
+            about: about || '',
+            gender: gender || 'male'
+        };
+        saveUsers(users);
+        
+        const activeList = Object.values(activeUsers).map(u => ({
+            username: u.username,
+            gender: users[u.username.toLowerCase()]?.profile.gender || 'male'
+        }));
+        io.emit('update userlist', activeList);
+
+        return res.json({ success: true, profile: users[username.toLowerCase()].profile });
+    }
+    res.json({ success: false });
+});
+
+io.on('connection', (socket) => {
+    socket.on('user logged in', (username) => {
+        if (!username) return;
+        socket.username = username;
+        activeUsers[socket.id] = { username };
+
+        const users = loadUsers();
+        const activeList = Object.values(activeUsers).map(u => ({
+            username: u.username,
+            gender: users[u.username.toLowerCase()]?.profile.gender || 'male'
+        }));
+
+        io.emit('update userlist', activeList);
+        
+        // Systémové uvítanie
+        socket.emit('chat message', { 
+            user: 'Systém', 
+            text: `Vitaj v Globtel Chate, ${username}!` 
+        });
+        
+        // ☕ ODKAZ NA BUY ME A COFFEE (Uprav si tvoje_meno na svoj nick)
+        socket.emit('chat message', { 
+            user: 'Podpora', 
+            text: `Páči sa ti náš chat? Podpor jeho prevádzku a vývoj dobrovoľným príspevkom na: buymeacoffee.com/tvoje_meno ☕❤️` 
+        });
+    });
+
+    socket.on('get profile', (targetName) => {
+        if (!targetName) return;
+        const users = loadUsers();
+        const targetUser = users[targetName.toLowerCase()];
+        if (targetUser) {
+            socket.emit('view profile card', {
+                username: targetUser.username,
+                profile: targetUser.profile
+            });
+        }
+    });
+
+    socket.on('chat message', (msg) => {
+        if (socket.username && msg && msg.trim() !== '') {
+            io.emit('chat message', { user: socket.username, text: msg.trim() });
+        }
+    });
+
+    socket.on('disconnect', () => {
+        if (socket.username) {
+            delete activeUsers[socket.id];
+            const users = loadUsers();
+            const activeList = Object.values(activeUsers).map(u => ({
+                username: u.username,
+                gender: users[u.username.toLowerCase()]?.profile.gender || 'male'
+            }));
+            io.emit('update userlist', activeList);
+        }
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Globtel Chat beží na porte ${PORT} 🚀`);
+});

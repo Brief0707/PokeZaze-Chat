@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Globtel Chat</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: #0d0211;
+            color: #00ffcc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- PRIHLASOVACIA OBRAZOVKA --- */
+        .auth-container {
+            background: #1a0826;
+            border: 2px solid #ff007f;
+            box-shadow: 0 0 15px #ff007f, inset 0 0 10px #1a0826;
+            padding: 30px;
+            border-radius: 8px;
+            width: 350px;
+            text-align: center;
+        }
+
+        .auth-container h2 {
+            color: #ff007f;
+            text-shadow: 0 0 8px #ff007f;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+        }
+
+        .logo-globtel {
+            color: #00ffcc;
+            text-shadow: 0 0 8px #00ffcc;
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #00ffcc;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            background: #0d0211;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            box-shadow: 0 0 8px #00ffcc;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #ff007f;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px #ff007f;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #e0006c;
+            box-shadow: 0 0 15px #e0006c;
+        }
+
+        .auth-container p {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .auth-container a {
+            color: #00ffcc;
+            text-decoration: none;
+        }
+
+        .auth-container a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- CHATOVACIE ROZHRANIE --- */
+        #chat-interface {
+            display: none; /* Schované kým sa neprihlási */
+            width: 95vw;
+            height: 90vh;
+            background: #14051f;
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 20px #00ffcc;
+            border-radius: 8px;
+        }
+
+        /* Ak ti chat po prihlásení naskočí, toto rozloženie zachová tvoje Miestnosti a Online ľudí vľavo/vpravo */
+        .chat-layout {
+            display: flex;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #0d0211;
+            border-right: 2px solid #00ffcc;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar h3 {
+            color: #ff007f;
+            text-shadow: 0 0 5px #ff007f;
+            font-size: 1.1rem;
+            border-bottom: 1px dashed #ff007f;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .list-items {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .list-items li {
+            padding: 8px;
+            background: #1a0826;
+            border: 1px solid #333;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .list-items li.active {
+            border-color: #00ffcc;
+            box-shadow: 0 0 5px #00ffcc;
+        }
+
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #14051f;
+        }
+
+        .chat-header {
+            padding: 15px;
+            background: #0d0211;
+            border-bottom: 2px solid #00ffcc;
+            color: #ff007f;
+            text-shadow: 0 0 5px #ff007f;
+            font-weight: bold;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            background: #1a0826;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #ff007f;
+            max-width: 80%;
+        }
+
+        .message .author {
+            color: #00ffcc;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .input-area {
+            padding: 15px;
+            background: #0d0211;
+            border-top: 2px solid #00ffcc;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            background: #14051f;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .input-area button {
+            padding: 0 25px;
+            background: #00ffcc;
+            color: #0d0211;
+            border: none;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-interface">
+        <div class="logo-globtel" style="text-align: center;">Globtel Chat ⚡</div>
+        
+        <div id="login-card" class="auth-container">
+            <h2>Prihlásenie</h2>
+            <div class="form-group">
+                <label>Používateľské meno</label>
+                <input type="text" id="login-username" placeholder="Zadaj meno">
+            </div>
+            <div class="form-group">
+                <label>Heslo</label>
+                <input type="password" id="login-password" placeholder="Zadaj heslo">
+            </div>
+            <button class="btn" onclick="spustitPrihlasenie()">Vstúpiť</button>
+            <p>Nemáš účet? <a href="#" onclick="preopnutFormulare('register')">Zaregistruj sa</a></p>
+        </div>
+
+        <div id="register-card" class="auth-container" style="display: none;">
+            <h2>Registrácia</h2>
+            <div class="form-group">
+                <label>Používateľské meno</label>
+                <input type="text" id="register-username" placeholder="Min. 3 znaky">
+            </div>
+            <div class="form-group">
+                <label>Heslo</label>
+                <input type="password" id="register-password" placeholder="Vytvor si heslo">
+            </div>
+            <div class="form-group">
+                <label>Pohlavie</label>
+                <select id="register-gender">
+                    <option value="male">Muž ♂</option>
+                    <option value="female">Žena ♀</option>
+                </select>
+            </div>
+            <button class="btn" onclick="spustitRegistraciu()">Vytvoriť účet</button>
+            <p>Už máš účet? <a href="#" onclick="preopnutFormulare('login')">Prihlás sa</a></p>
+        </div>
+    </div>
+
+    <div id="chat-interface">
+        <div class="chat-layout">
+            <div class="sidebar">
+                <h3>Miestnosti</h3>
+                <ul class="list-items">
+                    <li class="active">🌐 Globálny Chat</li>
+                </ul>
+                
+                <h3>Online Ľudia</h3>
+                <ul id="pouzivatelia-list" class="list-items">
+                    </ul>
+            </div>
+            
+            <div class="main-chat">
+                <div class="chat-header">Kanál: Globálny Chat</div>
+                <div id="spravy-box" class="messages-container"></div>
+                <div class="input-area">
+                    <input type="text" id="sprava-input" placeholder="Napíš správu a stlač Enter..." onkeypress="skontrolovatEnter(event)">
+                    <button onclick="poslatSpravu()">Odoslať</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let mojeMeno = "";
+
+        function preopnutFormulare(typ) {
+            document.getElementById('login-card').style.display = typ === 'login' ? 'block' : 'none';
+            document.getElementById('register-card').style.display = typ === 'register' ? 'block' : 'none';
+        }
+
+        async function spustitRegistraciu() {
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const gender = document.getElementById('register-gender').value;
+
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, gender })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                alert("Registrácia úspešná! Môžeš sa prihlásiť.");
+                preopnutFormulare('login');
+            } else {
+                alert(data.message || "Chyba pri registrácii");
+            }
+        }
+
+        async function spustitPrihlasenie() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                mojeMeno = data.username;
+                document.getElementById('auth-interface').style.display = 'none';
+                document.getElementById('chat-interface').style.display = 'block';
+                
+                // Oznámime serveru, že sme online
+                socket.emit('user logged in', mojeMeno);
+            } else {
+                alert(data.message || "Nesprávne prihlasovacie údaje");
+            }
+        }
+
+        function poslatSpravu() {
+            const input = document.getElementById('sprava-input');
+            const text = input.value.trim();
+            if (text !== "") {
+                socket.emit('chat message', text);
+                input.value = "";
+            }
+        }
+
+        function skontrolovatEnter(e) {
+            if (e.key === 'Enter') poslatSpravu();
+        }
+
+        // Prijímanie správ zo servera
+        socket.on('chat message', (msg) => {
+            const box = document.getElementById('spravy-box');
+            const msgEl = document.createElement('div');
+            msgEl.classList.add('message');
+            msgEl.innerHTML = `<div class="author">${msg.user}</div><div>${msg.text}</div>`;
+            box.appendChild(msgEl);
+            box.scrollTop = box.scrollHeight; // Automatický scroll dole
+        });
+
+        // Aktualizácia online ľudí
+        socket.on('update userlist', (list) => {
+            const uList = document.getElementById('pouzivatelia-list');
+            uList.innerHTML = "";
+            list.forEach(u => {
+                const li = document.createElement('li');
+                const ikona = u.gender === 'female' ? '♀️' : '♂️';
+                li.innerText = `${ikona} ${u.username}`;
+                uList.appendChild(li);
+            });
+        });
+    </script>
+</body>
+</html>

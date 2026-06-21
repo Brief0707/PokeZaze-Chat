@@ -1,0 +1,39 @@
+{
+  "mojeauta123@gmail.com": {
+    "username": "mojeauta123@gmail.com",
+    "password": "$2b$10$lc2ykYSLt65b/vaguRYw1urxLZsNX.yZeEeu/b8kSMvI3Dq9sORY6",
+    "profile": {
+      "age": "",
+      "city": "",
+      "about": "Hello, I am new here!"
+    }
+  },
+  "luca39034@gmail.com": {
+    "username": "luca39034@gmail.com",
+    "password": "$2b$10$CYHLGzQ38NZxEbvSbz7byeyE9/nj/a02uKyFC9KTnlPcAJHwfCJLK",
+    "profile": {
+      "age": "",
+      "city": "",
+      "about": "Hello, I am new here!"
+    }
+  },
+  "roharlubomir37@gmail.com": {
+    "username": "roharlubomir37@gmail.com",
+    "password": "$2b$10$JjUBsMzNiyDP6GD/.hdCgusHhCt.q0.G7e.Xwh1Xo5NlKzgvEC9wG",
+    "profile": {
+      "age": "43",
+      "city": "swansea",
+      "about": "Hello, I am new here!"
+    }
+  },
+  "testlubo22@gmail.com": {
+    "username": "testlubo22@gmail.com",
+    "password": "$2b$10$7qc04WPMp/PrzcjtgqzKDu0UB48CW8uLUfrDLPPeEd4CtzGfWRX5O",
+    "profile": {
+      "gender": "female",
+      "age": "",
+      "city": "",
+      "about": "Hello, I am new here!"
+    }
+  }
+}
