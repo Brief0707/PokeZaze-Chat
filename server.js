@@ -14,6 +14,9 @@ app.use(express.json());
 
 const USER_DB_PATH = path.join(__dirname, 'database', 'users.json');
 
+// Pole pre uchovanie histórie posledných 50 správ
+let historiaSprav = [];
+
 function loadUsers() {
     if (!fs.existsSync(USER_DB_PATH)) {
         const dir = path.dirname(USER_DB_PATH);
@@ -103,16 +106,21 @@ io.on('connection', (socket) => {
 
         io.emit('update userlist', activeList);
         
+        // 1. POŠLEME PRIHLÁSENÉMU HRÁČOVI HISTÓRIU SPRÁV
+        socket.emit('chat history', historiaSprav);
+
         // Systémové uvítanie
         socket.emit('chat message', { 
             user: 'Systém', 
-            text: `Vitaj v Globtel Chate, ${username}!` 
+            text: `Vitaj v Globtel Chate, ${username}!`,
+            time: new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })
         });
         
-        // ☕ ODKAZ NA BUY ME A COFFEE (Uprav si tvoje_meno na svoj nick)
+        // ☕ ODKAZ NA BUY ME A COFFEE
         socket.emit('chat message', { 
             user: 'Podpora', 
-            text: `Páči sa ti náš chat? Podpor jeho prevádzku a vývoj dobrovoľným príspevkom na: buymeacoffee.com/globtelchat ☕❤️` 
+            text: `Páči sa ti náš chat? Podpor jeho prevádzku a vývoj dobrovoľným príspevkom na: buymeacoffee.com/globtelchat ☕❤️`,
+            time: new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })
         });
     });
 
@@ -130,7 +138,20 @@ io.on('connection', (socket) => {
 
     socket.on('chat message', (msg) => {
         if (socket.username && msg && msg.trim() !== '') {
-            io.emit('chat message', { user: socket.username, text: msg.trim() });
+            const cas = new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+            const spravaObjekt = { 
+                user: socket.username, 
+                text: msg.trim(),
+                time: cas
+            };
+
+            // Uložíme do histórie
+            historiaSprav.push(spravaObjekt);
+            if (historiaSprav.length > 50) {
+                historiaSprav.shift(); // držíme max 50 správ
+            }
+
+            io.emit('chat message', spravaObjekt);
         }
     });
 

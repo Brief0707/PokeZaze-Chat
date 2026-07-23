@@ -132,7 +132,6 @@
             border-radius: 8px;
         }
 
-        /* Ak ti chat po prihlásení naskočí, toto rozloženie zachová tvoje Miestnosti a Online ľudí vľavo/vpravo */
         .chat-layout {
             display: flex;
             height: 100%;
@@ -214,6 +213,15 @@
             color: #00ffcc;
             font-weight: bold;
             margin-bottom: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .message .time {
+            color: #666;
+            font-size: 0.75rem;
+            font-weight: normal;
         }
 
         .input-area {
@@ -380,19 +388,35 @@
             if (e.key === 'Enter') poslatSpravu();
         }
 
-        // PRIDANÁ FUNKCIA PRE ODHLÁSENIE
         function odhlasitSa() {
-            location.reload(); // Obnoví stránku -> Socket sa odpojí a vráti ťa na prihlasovaciu obrazovku
+            location.reload(); 
         }
 
-        // Prijímanie správ zo servera
-        socket.on('chat message', (msg) => {
+        // Pomocná funkcia na pridanie správy do boxu
+        function vykreslitSpravu(msg) {
             const box = document.getElementById('spravy-box');
             const msgEl = document.createElement('div');
             msgEl.classList.add('message');
-            msgEl.innerHTML = `<div class="author">${msg.user}</div><div>${msg.text}</div>`;
+            
+            const casHtml = msg.time ? `<span class="time">${msg.time}</span>` : '';
+            msgEl.innerHTML = `<div class="author"><span>${msg.user}</span>${casHtml}</div><div>${msg.text}</div>`;
+            
             box.appendChild(msgEl);
-            box.scrollTop = box.scrollHeight; // Automatický scroll dole
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // 1. Prijatie histórie správ pri prihlásení
+        socket.on('chat history', (historia) => {
+            const box = document.getElementById('spravy-box');
+            box.innerHTML = ''; // Vyčistíme staré správy
+            historia.forEach(msg => {
+                vykreslitSpravu(msg);
+            });
+        });
+
+        // 2. Prijímanie novej správy zo servera
+        socket.on('chat message', (msg) => {
+            vykreslitSpravu(msg);
         });
 
         // Aktualizácia online ľudí
