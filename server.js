@@ -112,7 +112,7 @@ io.on('connection', (socket) => {
         // ☕ ODKAZ NA BUY ME A COFFEE (Uprav si tvoje_meno na svoj nick)
         socket.emit('chat message', { 
             user: 'Podpora', 
-            text: `Páči sa ti náš chat? Podpor jeho prevádzku a vývoj dobrovoľným príspevkom na: buymeacoffee.com/tvoje_meno ☕❤️` 
+            text: `Páči sa ti náš chat? Podpor jeho prevádzku a vývoj dobrovoľným príspevkom na: buymeacoffee.com/globtelchat ☕❤️` 
         });
     });
 

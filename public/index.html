@@ -95,6 +95,17 @@
             box-shadow: 0 0 15px #e0006c;
         }
 
+        .btn-logout {
+            background: #ff0055;
+            box-shadow: 0 0 10px #ff0055;
+            margin-top: auto;
+        }
+
+        .btn-logout:hover {
+            background: #cc0044;
+            box-shadow: 0 0 15px #cc0044;
+        }
+
         .auth-container p {
             margin-top: 15px;
             font-size: 0.85rem;
@@ -286,7 +297,10 @@
                 
                 <h3>Online Ľudia</h3>
                 <ul id="pouzivatelia-list" class="list-items">
-                    </ul>
+                </ul>
+
+                <!-- PRIDANÉ TLAČIDLO NA ODHLÁSENIE -->
+                <button class="btn btn-logout" onclick="odhlasitSa()">Odhlásiť sa</button>
             </div>
             
             <div class="main-chat">
@@ -364,6 +378,11 @@
 
         function skontrolovatEnter(e) {
             if (e.key === 'Enter') poslatSpravu();
+        }
+
+        // PRIDANÁ FUNKCIA PRE ODHLÁSENIE
+        function odhlasitSa() {
+            location.reload(); // Obnoví stránku -> Socket sa odpojí a vráti ťa na prihlasovaciu obrazovku
         }
 
         // Prijímanie správ zo servera
