@@ -14,7 +14,7 @@ app.use(express.json());
 
 const USER_DB_PATH = path.join(__dirname, 'database', 'users.json');
 
-// Pole pre uchovanie histórie posledných 50 správ
+// Pole pre uchovanie histórie verejných správ
 let historiaSprav = [];
 
 function loadUsers() {
@@ -96,7 +96,7 @@ io.on('connection', (socket) => {
     socket.on('user logged in', (username) => {
         if (!username) return;
         socket.username = username;
-        activeUsers[socket.id] = { username };
+        activeUsers[socket.id] = { username, socketId: socket.id };
 
         const users = loadUsers();
         const activeList = Object.values(activeUsers).map(u => ({
@@ -106,17 +106,14 @@ io.on('connection', (socket) => {
 
         io.emit('update userlist', activeList);
         
-        // 1. POŠLEME PRIHLÁSENÉMU HRÁČOVI HISTÓRIU SPRÁV
         socket.emit('chat history', historiaSprav);
 
-        // Systémové uvítanie
         socket.emit('chat message', { 
             user: 'Systém', 
             text: `Vitaj v Globtel Chate, ${username}!`,
             time: new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })
         });
         
-        // ☕ ODKAZ NA BUY ME A COFFEE
         socket.emit('chat message', { 
             user: 'Podpora', 
             text: `Páči sa ti náš chat? Podpor jeho prevádzku a vývoj dobrovoľným príspevkom na: buymeacoffee.com/globtelchat ☕❤️`,
@@ -136,20 +133,58 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('chat message', (msg) => {
-        if (socket.username && msg && msg.trim() !== '') {
-            const cas = new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
-            const spravaObjekt = { 
-                user: socket.username, 
-                text: msg.trim(),
-                time: cas
+    // SPRÁVY (Verejné aj Súkromné)
+    socket.on('chat message', (msgData) => {
+        if (!socket.username) return;
+
+        const cas = new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+
+        // Ak používateľ posiela objekt (napr. so súkromným príjemcom) alebo obyčajný text
+        let text = typeof msgData === 'object' ? msgData.text : msgData;
+        let recipient = typeof msgData === 'object' ? msgData.recipient : null;
+
+        if (!text || text.trim() === '') return;
+        text = text.trim();
+
+        // AK JE TO SÚKROMNÁ SPRÁVA
+        if (recipient && recipient !== 'global') {
+            // Nájdeme socket príjemcu
+            const recipientSocketId = Object.keys(activeUsers).find(
+                id => activeUsers[id].username.toLowerCase() === recipient.toLowerCase()
+            );
+
+            const privateMsg = {
+                user: socket.username,
+                text: text,
+                time: cas,
+                isPrivate: true,
+                target: recipient
             };
 
-            // Uložíme do histórie
-            historiaSprav.push(spravaObjekt);
-            if (historiaSprav.length > 50) {
-                historiaSprav.shift(); // držíme max 50 správ
+            if (recipientSocketId) {
+                // Pošleme správu príjemcovi
+                io.to(recipientSocketId).emit('chat message', privateMsg);
+                // Pošleme kópiu aj odosielateľovi, aby si ju videl u seba
+                socket.emit('chat message', privateMsg);
+            } else {
+                socket.emit('chat message', {
+                    user: 'Systém',
+                    text: `Používateľ ${recipient} už nie je online.`,
+                    time: cas
+                });
             }
+        } 
+        // VEREJNÁ SPRÁVA
+        else {
+            const spravaObjekt = { 
+                user: socket.username, 
+                text: text,
+                time: cas,
+                isPrivate: false
+            };
+
+            historiaSprav.push(spravaObjekt);
+            if (historiaSprav.length > 50) historiaSprav.shift();
 
             io.emit('chat message', spravaObjekt);
         }
