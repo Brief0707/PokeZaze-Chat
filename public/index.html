@@ -120,6 +120,28 @@
             box-shadow: 0 0 15px #cc0044;
         }
 
+        .btn-kick {
+            background: #ff9900;
+            color: black;
+            font-weight: bold;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 0 8px #ff9900;
+        }
+
+        .btn-ban {
+            background: #ff0000;
+            color: white;
+            font-weight: bold;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 0 8px #ff0000;
+        }
+
         .auth-container p {
             margin-top: 15px;
             font-size: 0.85rem;
@@ -350,6 +372,17 @@
             margin-left: 8px;
         }
 
+        .admin-badge {
+            background: #ff0000;
+            color: #ffffff;
+            font-size: 0.65rem;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-left: 5px;
+            font-weight: bold;
+            box-shadow: 0 0 6px #ff0000;
+        }
+
         /* Modal Okno Profilu */
         .profile-card-modal {
             background: #1a0826;
@@ -552,7 +585,15 @@
             <p id="card-age" style="margin-bottom:5px;"></p>
             <p id="card-city" style="margin-bottom:5px;"></p>
             <p id="card-about" style="font-style:italic; border-top:1px dashed #00ffcc; padding-top:8px; margin-top:8px;"></p>
+            
             <button class="btn" style="margin-top:15px;" id="card-pm-btn">Poslať PM</button>
+            
+            <!-- ADMIN TLAČIDLÁ -->
+            <div id="card-admin-actions" style="display:none; margin-top:10px; gap:8px; justify-content:center;">
+                <button class="btn-kick" id="card-kick-btn">KICK</button>
+                <button class="btn-ban" id="card-ban-btn">BAN</button>
+            </div>
+
             <button class="btn btn-avatar" style="margin-top:5px;" onclick="zatvoritProfil()">Zatvoriť</button>
         </div>
     </div>
@@ -599,7 +640,8 @@
     <script>
         const socket = io();
         let mojeMeno = "";
-        let vybranyPrijemca = "global"; // Defaultne posielame do globálu
+        let mojeRola = "user"; // 'user' alebo 'admin'
+        let vybranyPrijemca = "global"; 
         let hoverTimeout = null;
         let isHoveringCard = false;
 
@@ -662,7 +704,8 @@
         }
 
         socket.on('view profile card', (data) => {
-            document.getElementById('card-username').innerText = data.username;
+            const adminTag = data.role === 'admin' ? ' <span class="admin-badge">[ADMIN]</span>' : '';
+            document.getElementById('card-username').innerHTML = data.username + adminTag;
             document.getElementById('card-avatar').src = data.profile?.avatar || 'https://via.placeholder.com/80/000000/00ffcc?text=User';
             document.getElementById('card-gender').innerText = 'Pohlavie: ' + (data.profile?.gender === 'female' ? 'Žena ♀' : 'Muž ♂');
             document.getElementById('card-age').innerText = 'Vek: ' + (data.profile?.age || 'Nezadaný');
@@ -670,14 +713,36 @@
             document.getElementById('card-about').innerText = 'O mne: ' + (data.profile?.about || 'Ahoj!');
 
             const pmBtn = document.getElementById('card-pm-btn');
+            const adminActions = document.getElementById('card-admin-actions');
+
             if (data.username === mojeMeno) {
                 pmBtn.style.display = 'none';
+                adminActions.style.display = 'none';
             } else {
                 pmBtn.style.display = 'block';
                 pmBtn.onclick = () => {
                     nastavitPM(data.username);
                     zatvoritProfil();
                 };
+
+                // Ak som ja ADMIN, ukážem Kick a Ban tlačidlá
+                if (mojeRola === 'admin') {
+                    adminActions.style.display = 'flex';
+                    document.getElementById('card-kick-btn').onclick = () => {
+                        if (confirm(`Naozaj chceš vyhodiť používateľa ${data.username}?`)) {
+                            socket.emit('admin kick user', data.username);
+                            zatvoritProfil();
+                        }
+                    };
+                    document.getElementById('card-ban-btn').onclick = () => {
+                        if (confirm(`Naozaj chceš dať BAN používateľovi ${data.username}?`)) {
+                            socket.emit('admin ban user', data.username);
+                            zatvoritProfil();
+                        }
+                    };
+                } else {
+                    adminActions.style.display = 'none';
+                }
             }
 
             document.getElementById('profile-modal').style.display = 'flex';
@@ -711,7 +776,8 @@
 
         socket.on('show hover profile', (data) => {
             const card = document.getElementById('pokec-hover-card');
-            document.getElementById('hover-username').innerText = data.username;
+            const adminBadge = data.role === 'admin' ? ' [ADMIN]' : '';
+            document.getElementById('hover-username').innerText = data.username + adminBadge;
             
             const genderStr = data.profile?.gender === 'female' ? 'Žena' : 'Muž';
             const ageStr = data.profile?.age ? `, ${data.profile.age} r.` : '';
@@ -772,6 +838,8 @@
 
             if (data.success) {
                 mojeMeno = data.username;
+                mojeRola = data.role || 'user';
+
                 document.getElementById('auth-interface').style.display = 'none';
                 document.getElementById('chat-interface').style.display = 'block';
                 
@@ -786,7 +854,6 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // NASTAVENÉ ÚDAJE Z CLOUDINARY ÚČTU:
             const CLOUD_NAME = "juyie103"; 
             const UPLOAD_PRESET = "globtel_preset";
 
@@ -813,7 +880,7 @@
         }
 
         function nastavitPM(meno) {
-            if (meno === mojeMeno) return; // Nemôžeš písať sám sebe
+            if (meno === mojeMeno) return;
             vybranyPrijemca = meno;
             document.getElementById('kanal-nazov').innerText = `Súkromná správa pre: ${meno}`;
             document.getElementById('pm-info').style.display = 'inline';
@@ -859,13 +926,14 @@
             
             const casHtml = msg.time ? `<span class="time">${msg.time}</span>` : '';
             const avatarHtml = msg.avatar ? `<img src="${msg.avatar}" class="msg-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${msg.user}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${msg.avatar}')">` : '';
-            
-            let autorText = `<span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${msg.user}')" onmouseleave="skrytcKarta()">${msg.user}</span>`;
+            const adminTag = msg.role === 'admin' ? '<span class="admin-badge">[ADMIN]</span>' : '';
+
+            let autorText = `<span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${msg.user}')" onmouseleave="skrytcKarta()">${msg.user}</span>${adminTag}`;
             if (msg.isPrivate) {
                 if (msg.user === mojeMeno) {
                     autorText = `Pre ${msg.target} <span class="pm-badge">🔒 SÚKROMNE</span>`;
                 } else {
-                    autorText = `Od ${msg.user} <span class="pm-badge">🔒 SÚKROMNE</span>`;
+                    autorText = `Od ${msg.user}${adminTag} <span class="pm-badge">🔒 SÚKROMNE</span>`;
                 }
             }
 
@@ -893,19 +961,30 @@
             list.forEach(u => {
                 const li = document.createElement('li');
                 const ikona = u.gender === 'female' ? '♀️' : '♂️';
+                const adminTag = u.role === 'admin' ? '<span class="admin-badge">[ADMIN]</span>' : '';
                 
                 let avatarElement = '';
                 if (u.avatar) {
                     avatarElement = `<img src="${u.avatar}" class="user-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${u.username}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${u.avatar}')">`;
                 }
 
-                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${u.username}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${u.username}')">${ikona} ${u.username}</span>`;
+                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${u.username}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${u.username}')">${ikona} ${u.username}${adminTag}</span>`;
                 
-                // Po kliknutí na položku nastavíme PM
                 li.onclick = () => nastavitPM(u.username);
                 
                 uList.appendChild(li);
             });
+        });
+
+        // REAKCIE NA KICK A BAN
+        socket.on('kicked out', () => {
+            alert('Bol si vyhodený z chatu adminom!');
+            location.reload();
+        });
+
+        socket.on('banned out', () => {
+            alert('Tvoj účet bol zablokovaný (BAN)!');
+            location.reload();
         });
     </script>
 </body>
