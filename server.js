@@ -9,7 +9,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 // --- PRIPOJENIE K MONGODB ATLAS ---
@@ -23,7 +23,7 @@ if (mongoURI) {
     console.warn('⚠️ Varovanie: MONGO_URI premenná nebola nájdená!');
 }
 
-// Schéma používateľa pre MongoDB (Pridané: role a isBanned)
+// Schéma používateľa pre MongoDB
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     usernameLower: { type: String, required: true, unique: true },
@@ -41,22 +41,18 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// Pole pre uchovanie histórie verejných správ v pamäti
+// História správ a aktívni používatelia v pamäti
 let historiaSprav = [];
 const activeUsers = {};
 
-// Pomocná funkcia na odoslanie aktualizovaného zoznamu aktívnych používateľov
-async function broadcastActiveUsers() {
-    const activeList = [];
-    for (const u of Object.values(activeUsers)) {
-        const dbUser = await User.findOne({ usernameLower: u.username.toLowerCase() });
-        activeList.push({
-            username: u.username,
-            role: dbUser?.role || 'user',
-            gender: dbUser?.profile?.gender || 'male',
-            avatar: dbUser?.profile?.avatar || ''
-        });
-    }
+// Pomocná funkcia na rozoslanie zoznamu online ľudí (Optimalizovaná - bez zbytočných DB dotazov)
+function broadcastActiveUsers() {
+    const activeList = Object.values(activeUsers).map(u => ({
+        username: u.username,
+        role: u.role,
+        gender: u.gender,
+        avatar: u.avatar
+    }));
     io.emit('update userlist', activeList);
 }
 
@@ -112,7 +108,8 @@ app.post('/api/login', async (req, res) => {
             return res.json({ success: false, message: "Nesprávne prihlasovacie údaje" });
         }
 
-        const user = await User.findOne({ usernameLower: username.toLowerCase() });
+        const lower = username.toLowerCase();
+        const user = await User.findOne({ usernameLower: lower });
 
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.json({ success: false, message: "Nesprávne meno alebo heslo" });
@@ -121,6 +118,12 @@ app.post('/api/login', async (req, res) => {
         // Kontrola BANu
         if (user.isBanned) {
             return res.json({ success: false, message: "Tvoj účet bol zablokovaný (BAN)!" });
+        }
+
+        // Auto-fix pre Admina (ak by z minulosti nemal priradenú rolu admin)
+        if (lower === 'admin' && user.role !== 'admin') {
+            user.role = 'admin';
+            await user.save();
         }
 
         res.json({ 
@@ -153,8 +156,16 @@ app.post('/api/profile/update', async (req, res) => {
             if (about !== undefined) user.profile.about = about;
 
             await user.save();
-            await broadcastActiveUsers();
 
+            // Aktualizácia aktívneho stavu v pamäti
+            for (const socketId in activeUsers) {
+                if (activeUsers[socketId].username.toLowerCase() === userKey) {
+                    activeUsers[socketId].gender = user.profile.gender;
+                    break;
+                }
+            }
+
+            broadcastActiveUsers();
             return res.json({ success: true, profile: user.profile });
         }
         res.json({ success: false, message: "Používateľ nenájdený" });
@@ -166,6 +177,7 @@ app.post('/api/profile/update', async (req, res) => {
 
 // --- SOCKET.IO ---
 io.on('connection', (socket) => {
+
     socket.on('user logged in', async (username) => {
         if (!username) return;
 
@@ -175,24 +187,32 @@ io.on('connection', (socket) => {
             return;
         }
 
-        socket.username = username;
+        socket.username = dbUser ? dbUser.username : username;
         socket.role = dbUser?.role || 'user';
-        activeUsers[socket.id] = { username, role: socket.role, socketId: socket.id };
 
-        await broadcastActiveUsers();
+        // Uloženie údajov do activeUsers pre rýchly prístup bez DB dotazov
+        activeUsers[socket.id] = { 
+            username: socket.username, 
+            role: socket.role, 
+            gender: dbUser?.profile?.gender || 'male',
+            avatar: dbUser?.profile?.avatar || '',
+            socketId: socket.id 
+        };
+
+        broadcastActiveUsers();
 
         socket.emit('chat history', historiaSprav);
 
         socket.emit('chat message', { 
             user: 'Systém', 
-            text: `Vitaj v Globtel Chate, ${username}!`,
-            time: new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })
+            text: `Vitaj v Globtel Chate, ${socket.username}!`,
+            time: getFormattedTime()
         });
 
         socket.emit('chat message', { 
             user: 'Podpora', 
             text: `Páči sa ti náš chat? Podpor jeho prevádzku a vývoj dobrovoľným príspevkom na: buymeacoffee.com/globtelchat ☕❤️`,
-            time: new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })
+            time: getFormattedTime()
         });
     });
 
@@ -205,11 +225,19 @@ io.on('connection', (socket) => {
         );
 
         if (targetSocketId) {
-            io.to(targetSocketId).emit('kicked out');
+            const targetSocket = io.sockets.sockets.get(targetSocketId);
+            if (targetSocket) {
+                targetSocket.emit('kicked out');
+                targetSocket.disconnect(true);
+            }
+
+            delete activeUsers[targetSocketId];
+            broadcastActiveUsers();
+
             io.emit('chat message', {
                 user: 'Systém',
                 text: `Používateľ ${targetUsername} bol vyhodený z chatu.`,
-                time: new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })
+                time: getFormattedTime()
             });
         }
     });
@@ -224,13 +252,20 @@ io.on('connection', (socket) => {
         );
 
         if (targetSocketId) {
-            io.to(targetSocketId).emit('banned out');
+            const targetSocket = io.sockets.sockets.get(targetSocketId);
+            if (targetSocket) {
+                targetSocket.emit('banned out');
+                targetSocket.disconnect(true);
+            }
+
+            delete activeUsers[targetSocketId];
+            broadcastActiveUsers();
         }
 
         io.emit('chat message', {
             user: 'Systém',
             text: `Používateľ ${targetUsername} bol zablokovaný (BAN).`,
-            time: new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })
+            time: getFormattedTime()
         });
     });
 
@@ -244,7 +279,11 @@ io.on('connection', (socket) => {
             user.profile.avatar = avatarUrl;
             await user.save();
 
-            await broadcastActiveUsers();
+            if (activeUsers[socket.id]) {
+                activeUsers[socket.id].avatar = avatarUrl;
+            }
+
+            broadcastActiveUsers();
         }
     });
 
@@ -283,8 +322,7 @@ io.on('connection', (socket) => {
 
         const userAvatar = user?.profile?.avatar || '';
         const userRole = user?.role || 'user';
-
-        const cas = new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+        const cas = getFormattedTime();
 
         let text = typeof msgData === 'object' ? msgData.text : msgData;
         let recipient = typeof msgData === 'object' ? msgData.recipient : null;
@@ -337,13 +375,17 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('disconnect', async () => {
-        if (socket.username) {
+    socket.on('disconnect', () => {
+        if (socket.id && activeUsers[socket.id]) {
             delete activeUsers[socket.id];
-            await broadcastActiveUsers();
+            broadcastActiveUsers();
         }
     });
 });
+
+function getFormattedTime() {
+    return new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+}
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
