@@ -395,11 +395,27 @@
         </div>
     </div>
 
+    <!-- Modal pre zvätšenie fotky po kliknutí -->
+    <div id="image-modal" onclick="zatvoritFotku()" style="display:none; position:fixed; z-index:999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; cursor:pointer;">
+        <img id="modal-img" style="max-width:90%; max-height:90%; border:2px solid #00ffcc; box-shadow:0 0 20px #00ffcc; border-radius:8px; object-fit:contain;">
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         let mojeMeno = "";
         let vybranyPrijemca = "global"; // Defaultne posielame do globálu
+
+        function zvacsitFotku(url) {
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-img');
+            modalImg.src = url;
+            modal.style.display = 'flex';
+        }
+
+        function zatvoritFotku() {
+            document.getElementById('image-modal').style.display = 'none';
+        }
 
         function preopnutFormulare(typ) {
             document.getElementById('login-card').style.display = typ === 'login' ? 'block' : 'none';
@@ -525,7 +541,7 @@
             }
             
             const casHtml = msg.time ? `<span class="time">${msg.time}</span>` : '';
-            const avatarHtml = msg.avatar ? `<img src="${msg.avatar}" class="msg-avatar-img">` : '';
+            const avatarHtml = msg.avatar ? `<img src="${msg.avatar}" class="msg-avatar-img" style="cursor:pointer;" onclick="event.stopPropagation(); zvacsitFotku('${msg.avatar}')">` : '';
             
             let autorText = msg.user;
             if (msg.isPrivate) {
@@ -563,7 +579,7 @@
                 
                 let avatarElement = '';
                 if (u.avatar) {
-                    avatarElement = `<img src="${u.avatar}" class="user-avatar-img">`;
+                    avatarElement = `<img src="${u.avatar}" class="user-avatar-img" style="cursor:pointer;" onclick="event.stopPropagation(); zvacsitFotku('${u.avatar}')">`;
                 }
 
                 li.innerHTML = `${avatarElement} <span>${ikona} ${u.username}</span>`;
