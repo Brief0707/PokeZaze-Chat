@@ -428,6 +428,7 @@
                 <!-- Tlačidlo pre výber fotky z PC -->
                 <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="nahratFotku(event)">
                 <button class="btn btn-avatar" onclick="document.getElementById('avatarFileInput').click()">📷 Zmeniť fotku</button>
+                <button class="btn btn-avatar" onclick="otvoritEditorProfilu()">✏️ Upraviť profil</button>
 
                 <button class="btn btn-logout" onclick="odhlasitSa()">Odhlásiť sa</button>
             </div>
@@ -478,6 +479,29 @@
         </div>
     </div>
 
+    <!-- Modal pre Úpravu vlastného Profilu -->
+    <div id="edit-profile-modal" style="display:none; position:fixed; z-index:998; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center;">
+        <div class="profile-card-modal" style="width: 320px;">
+            <h3 style="color:#ff007f; margin-bottom:15px;">Úprava profilu</h3>
+            
+            <div class="form-group">
+                <label>Vek:</label>
+                <input type="number" id="edit-age" placeholder="Napr. 25">
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label>Mesto:</label>
+                <input type="text" id="edit-city" placeholder="Napr. Bratislava">
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label>O mne:</label>
+                <input type="text" id="edit-about" placeholder="Napr. Rád četujem...">
+            </div>
+
+            <button class="btn" style="margin-top:15px;" onclick="ulozitProfil()">Uložiť</button>
+            <button class="btn btn-avatar" style="margin-top:5px;" onclick="zatvoritEditorProfilu()">Zrušiť</button>
+        </div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -507,6 +531,39 @@
 
         function zatvoritProfil() {
             document.getElementById('profile-modal').style.display = 'none';
+        }
+
+        function otvoritEditorProfilu() {
+            document.getElementById('edit-profile-modal').style.display = 'flex';
+        }
+
+        function zatvoritEditorProfilu() {
+            document.getElementById('edit-profile-modal').style.display = 'none';
+        }
+
+        async function ulozitProfil() {
+            const age = document.getElementById('edit-age').value;
+            const city = document.getElementById('edit-city').value;
+            const about = document.getElementById('edit-about').value;
+
+            const res = await fetch('/api/profile/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: mojeMeno,
+                    age: age,
+                    city: city,
+                    about: about
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert("Profil bol úspešne aktualizovaný!");
+                zatvoritEditorProfilu();
+            } else {
+                alert("Chyba pri ukladaní profilu.");
+            }
         }
 
         socket.on('view profile card', (data) => {
