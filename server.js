@@ -23,7 +23,11 @@ function loadUsers() {
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(USER_DB_PATH, JSON.stringify({}));
     }
-    return JSON.parse(fs.readFileSync(USER_DB_PATH, 'utf8'));
+    try {
+        return JSON.parse(fs.readFileSync(USER_DB_PATH, 'utf8'));
+    } catch (e) {
+        return {};
+    }
 }
 
 function saveUsers(users) {
@@ -72,28 +76,31 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/profile/update', (req, res) => {
     const { username, age, city, about, gender } = req.body;
     const users = loadUsers();
+    const userKey = username?.toLowerCase();
 
-    if (users[username?.toLowerCase()]) {
-        const currentAvatar = users[username.toLowerCase()].profile.avatar || '';
-        users[username.toLowerCase()].profile = {
-            age: age || '',
-            city: city || '',
-            about: about || '',
-            gender: gender || 'male',
-            avatar: currentAvatar
+    if (userKey && users[userKey]) {
+        const currentProfile = users[userKey].profile || {};
+        
+        users[userKey].profile = {
+            gender: gender || currentProfile.gender || 'male',
+            age: age !== undefined ? age : currentProfile.age || '',
+            city: city !== undefined ? city : currentProfile.city || '',
+            about: about !== undefined ? about : currentProfile.about || '',
+            avatar: currentProfile.avatar || ''
         };
+        
         saveUsers(users);
         
         const activeList = Object.values(activeUsers).map(u => ({
             username: u.username,
-            gender: users[u.username.toLowerCase()]?.profile.gender || 'male',
-            avatar: users[u.username.toLowerCase()]?.profile.avatar || ''
+            gender: users[u.username.toLowerCase()]?.profile?.gender || 'male',
+            avatar: users[u.username.toLowerCase()]?.profile?.avatar || ''
         }));
         io.emit('update userlist', activeList);
 
-        return res.json({ success: true, profile: users[username.toLowerCase()].profile });
+        return res.json({ success: true, profile: users[userKey].profile });
     }
-    res.json({ success: false });
+    res.json({ success: false, message: "User not found" });
 });
 
 io.on('connection', (socket) => {
@@ -105,8 +112,8 @@ io.on('connection', (socket) => {
         const users = loadUsers();
         const activeList = Object.values(activeUsers).map(u => ({
             username: u.username,
-            gender: users[u.username.toLowerCase()]?.profile.gender || 'male',
-            avatar: users[u.username.toLowerCase()]?.profile.avatar || ''
+            gender: users[u.username.toLowerCase()]?.profile?.gender || 'male',
+            avatar: users[u.username.toLowerCase()]?.profile?.avatar || ''
         }));
 
         io.emit('update userlist', activeList);
@@ -134,14 +141,15 @@ io.on('connection', (socket) => {
         const userKey = socket.username.toLowerCase();
 
         if (users[userKey]) {
+            if (!users[userKey].profile) users[userKey].profile = {};
             users[userKey].profile.avatar = avatarUrl;
             saveUsers(users);
 
             // Aktualizujeme zoznam aktívnych používateľov s novou fotkou
             const activeList = Object.values(activeUsers).map(u => ({
                 username: u.username,
-                gender: users[u.username.toLowerCase()]?.profile.gender || 'male',
-                avatar: users[u.username.toLowerCase()]?.profile.avatar || ''
+                gender: users[u.username.toLowerCase()]?.profile?.gender || 'male',
+                avatar: users[u.username.toLowerCase()]?.profile?.avatar || ''
             }));
 
             io.emit('update userlist', activeList);
@@ -225,8 +233,8 @@ io.on('connection', (socket) => {
             const users = loadUsers();
             const activeList = Object.values(activeUsers).map(u => ({
                 username: u.username,
-                gender: users[u.username.toLowerCase()]?.profile.gender || 'male',
-                avatar: users[u.username.toLowerCase()]?.profile.avatar || ''
+                gender: users[u.username.toLowerCase()]?.profile?.gender || 'male',
+                avatar: users[u.username.toLowerCase()]?.profile?.avatar || ''
             }));
             io.emit('update userlist', activeList);
         }
