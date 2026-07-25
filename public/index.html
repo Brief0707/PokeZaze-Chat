@@ -23,6 +23,12 @@
         }
 
         /* --- PRIHLASOVACIA OBRAZOVKA --- */
+        #auth-interface {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .auth-container {
             background: #1a0826;
             border: 2px solid #ff007f;
@@ -71,7 +77,7 @@
             outline: none;
         }
 
-        .form-group input:focus {
+        .form-group input:focus, .form-group select:focus {
             box-shadow: 0 0 8px #00ffcc;
         }
 
@@ -88,6 +94,7 @@
             letter-spacing: 1px;
             box-shadow: 0 0 10px #ff007f;
             margin-top: 10px;
+            transition: all 0.2s ease;
         }
 
         .btn:hover {
@@ -174,13 +181,13 @@
         }
 
         .sidebar {
-            width: 250px;
+            width: 260px;
             background: #0d0211;
             border-right: 2px solid #00ffcc;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
         }
 
         .sidebar h3 {
@@ -196,8 +203,9 @@
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             overflow-y: auto;
+            max-height: 40vh;
         }
 
         .list-items li {
@@ -221,7 +229,6 @@
             box-shadow: 0 0 5px #00ffcc;
         }
 
-        /* Fotky v zozname a správach */
         .user-avatar-img {
             width: 24px;
             height: 24px;
@@ -269,16 +276,15 @@
             gap: 10px;
         }
 
-        /* Štýl obyčajnej správy */
         .message {
             background: #1a0826;
             padding: 10px;
             border-radius: 4px;
             border-left: 3px solid #ff007f;
             max-width: 80%;
+            word-wrap: break-word;
         }
 
-        /* Štýl pre súkromnú správu (PM) */
         .message.private-msg {
             background: #2b083a;
             border-left: 3px solid #b800ff;
@@ -288,20 +294,17 @@
         .message .author {
             color: #00ffcc;
             font-weight: bold;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .message.private-msg .author {
-            color: #e066ff;
-        }
-
         .message .time {
-            color: #666;
+            color: #888;
             font-size: 0.75rem;
             font-weight: normal;
+            margin-left: 10px;
         }
 
         .input-area {
@@ -339,7 +342,6 @@
             text-transform: uppercase;
         }
 
-        /* Paleta smajlíkov */
         .emoji-bar {
             display: flex;
             gap: 6px;
@@ -363,15 +365,6 @@
             box-shadow: 0 0 5px #ff007f;
         }
 
-        .pm-badge {
-            background: #b800ff;
-            color: white;
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 3px;
-            margin-left: 8px;
-        }
-
         .admin-badge {
             background: #ff0000;
             color: #ffffff;
@@ -383,14 +376,27 @@
             box-shadow: 0 0 6px #ff0000;
         }
 
-        /* Modal Okno Profilu */
+        /* --- MODÁLNE OKNÁ --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            z-index: 998;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
         .profile-card-modal {
             background: #1a0826;
             border: 2px solid #00ffcc;
             box-shadow: 0 0 20px #00ffcc;
             border-radius: 8px;
             padding: 20px;
-            width: 300px;
+            width: 320px;
             color: #00ffcc;
             text-align: center;
         }
@@ -402,6 +408,111 @@
             border: 2px solid #ff007f;
             object-fit: cover;
             margin-bottom: 10px;
+        }
+
+        /* --- RP POP-UP OKNO (RÝCHLA POŠTA) --- */
+        .rp-box {
+            background: #1a0826;
+            border: 2px solid #b800ff;
+            box-shadow: 0 0 25px #b800ff;
+            border-radius: 8px;
+            width: 420px;
+            height: 520px;
+            display: flex;
+            flex-direction: column;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .rp-header {
+            background: #0d0211;
+            padding: 12px 15px;
+            border-bottom: 2px solid #b800ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #e066ff;
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+
+        .rp-close-btn {
+            background: transparent;
+            border: none;
+            color: #ff007f;
+            font-size: 1.2rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .rp-close-btn:hover {
+            color: #ff0055;
+        }
+
+        .rp-messages-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #14051f;
+        }
+
+        .rp-msg {
+            padding: 8px 12px;
+            border-radius: 6px;
+            max-width: 85%;
+            font-size: 0.9rem;
+            word-wrap: break-word;
+        }
+
+        .rp-msg.my-rp {
+            background: #3c0952;
+            border: 1px solid #b800ff;
+            align-self: flex-end;
+            color: #00ffcc;
+        }
+
+        .rp-msg.their-rp {
+            background: #230833;
+            border: 1px solid #ff007f;
+            align-self: flex-start;
+            color: #fff;
+        }
+
+        .rp-input-area {
+            padding: 12px;
+            background: #0d0211;
+            border-top: 2px solid #b800ff;
+            display: flex;
+            gap: 8px;
+        }
+
+        .rp-input-area input {
+            flex: 1;
+            padding: 10px;
+            background: #14051f;
+            border: 1px solid #b800ff;
+            color: #00ffcc;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .rp-input-area button {
+            padding: 0 18px;
+            background: #b800ff;
+            color: #fff;
+            border: none;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 8px #b800ff;
+        }
+
+        .rp-input-area button:hover {
+            background: #9900d6;
         }
 
         /* --- POKEC HOVER MINIKARTA --- */
@@ -486,7 +597,7 @@
 <body>
 
     <div id="auth-interface">
-        <div class="logo-globtel" style="text-align: center;">Globtel Chat ⚡</div>
+        <div class="logo-globtel">Globtel Chat ⚡</div>
         
         <div id="login-card" class="auth-container">
             <h2>Prihlásenie</h2>
@@ -529,14 +640,12 @@
             <div class="sidebar">
                 <h3>Miestnosti</h3>
                 <ul class="list-items">
-                    <li class="active" onclick="zrusitPM()">🌐 Globálny Chat</li>
+                    <li class="active">🌐 Globálny Chat</li>
                 </ul>
                 
                 <h3>Online Ľudia</h3>
-                <ul id="pouzivatelia-list" class="list-items">
-                </ul>
+                <ul id="pouzivatelia-list" class="list-items"></ul>
 
-                <!-- Tlačidlo pre výber fotky z PC -->
                 <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="nahratFotku(event)">
                 <button class="btn btn-avatar" onclick="document.getElementById('avatarFileInput').click()">📷 Zmeniť fotku</button>
                 <button class="btn btn-avatar" onclick="otvoritEditorProfilu()">✏️ Upraviť profil</button>
@@ -546,12 +655,10 @@
             
             <div class="main-chat">
                 <div class="chat-header">
-                    <span id="kanal-nazov">Kanál: Globálny Chat</span>
-                    <span id="pm-info" style="font-size: 0.85rem; color: #b800ff; display: none;">🔒 Súkromný rozhovor</span>
+                    <span>Kanál: Globálny Chat</span>
                 </div>
                 <div id="spravy-box" class="messages-container"></div>
                 <div class="input-area">
-                    <!-- Lišta retro smajlíkov -->
                     <div class="emoji-bar">
                         <button class="emoji-btn" onclick="pridajSmajlika('😊')">😊</button>
                         <button class="emoji-btn" onclick="pridajSmajlika('😂')">😂</button>
@@ -563,7 +670,7 @@
                         <button class="emoji-btn" onclick="pridajSmajlika('😜')">😜</button>
                     </div>
                     <div class="input-row">
-                        <input type="text" id="sprava-input" placeholder="Napíš správu..." onkeypress="skontrolovatEnter(event)">
+                        <input type="text" id="sprava-input" placeholder="Napíš správu do globálu..." onkeypress="skontrolovatEnter(event)">
                         <button onclick="poslatSpravu()">Odoslať</button>
                     </div>
                 </div>
@@ -571,13 +678,28 @@
         </div>
     </div>
 
-    <!-- Modal pre zvätšenie fotky po kliknutí -->
-    <div id="image-modal" onclick="zatvoritFotku()" style="display:none; position:fixed; z-index:999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; cursor:pointer;">
-        <img id="modal-img" style="max-width:50%; max-height:50%; border:2px solid #00ffcc; box-shadow:0 0 20px #00ffcc; border-radius:8px; object-fit:contain;">
+    <!-- RP POP-UP OKNO (RÝCHLA POŠTA) -->
+    <div id="rp-popup-modal" class="modal-overlay" onclick="if(event.target === this) zatvoritRPOkno()">
+        <div class="rp-box">
+            <div class="rp-header">
+                <span id="rp-title">📩 Rýchla Pošta (RP)</span>
+                <button class="rp-close-btn" onclick="zatvoritRPOkno()">✖</button>
+            </div>
+            <div id="rp-messages-box" class="rp-messages-box"></div>
+            <div class="rp-input-area">
+                <input type="text" id="rp-input" placeholder="Napíš RP..." onkeypress="skontrolovatRPEnter(event)">
+                <button onclick="poslatRPSpravu()">Poslať</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pre zvätšenie fotky -->
+    <div id="image-modal" class="modal-overlay" onclick="zatvoritFotku()" style="z-index:999; cursor:pointer;">
+        <img id="modal-img" style="max-width:80%; max-height:80%; border:2px solid #00ffcc; box-shadow:0 0 20px #00ffcc; border-radius:8px; object-fit:contain;">
     </div>
 
     <!-- Modal pre Profilovú Kartu -->
-    <div id="profile-modal" style="display:none; position:fixed; z-index:998; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center;">
+    <div id="profile-modal" class="modal-overlay" onclick="if(event.target === this) zatvoritProfil()">
         <div class="profile-card-modal">
             <img id="card-avatar" class="profile-card-avatar" src="" alt="Avatar">
             <h3 id="card-username" style="color:#ff007f; margin-bottom:10px;"></h3>
@@ -586,9 +708,8 @@
             <p id="card-city" style="margin-bottom:5px;"></p>
             <p id="card-about" style="font-style:italic; border-top:1px dashed #00ffcc; padding-top:8px; margin-top:8px;"></p>
             
-            <button class="btn" style="margin-top:15px;" id="card-pm-btn">Poslať PM</button>
+            <button class="btn" style="margin-top:15px;" id="card-pm-btn">Nápíš RP</button>
             
-            <!-- ADMIN TLAČIDLÁ -->
             <div id="card-admin-actions" style="display:none; margin-top:10px; gap:8px; justify-content:center;">
                 <button class="btn-kick" id="card-kick-btn">KICK</button>
                 <button class="btn-ban" id="card-ban-btn">BAN</button>
@@ -598,9 +719,9 @@
         </div>
     </div>
 
-    <!-- Modal pre Úpravu vlastného Profilu -->
-    <div id="edit-profile-modal" style="display:none; position:fixed; z-index:998; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center;">
-        <div class="profile-card-modal" style="width: 320px;">
+    <!-- Modal pre Úpravu profilu -->
+    <div id="edit-profile-modal" class="modal-overlay" onclick="if(event.target === this) zatvoritEditorProfilu()">
+        <div class="profile-card-modal">
             <h3 style="color:#ff007f; margin-bottom:15px;">Úprava profilu</h3>
             
             <div class="form-group">
@@ -621,7 +742,7 @@
         </div>
     </div>
 
-    <!-- POKEC MINIKARTA (PRIDANÁ NAVYŠE) -->
+    <!-- POKEC MINIKARTA -->
     <div id="pokec-hover-card" onmouseenter="pomenutKarta(true)" onmouseleave="pomenutKarta(false)">
         <div class="pokec-card-header"></div>
         <div class="pokec-card-body">
@@ -640,11 +761,92 @@
     <script>
         const socket = io();
         let mojeMeno = "";
-        let mojeRola = "user"; // 'user' alebo 'admin'
-        let vybranyPrijemca = "global"; 
+        let mojeRola = "user";
+        let aktivnyRPUser = null; 
+        const rpHistories = {}; // Pamäť RP správ pre jednotlivých používateľov
+
         let hoverTimeout = null;
         let isHoveringCard = false;
+        let mouseX = 0;
+        let mouseY = 0;
 
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        /* --- RP POP-UP OKNO LOGIKA --- */
+        function otvoritRPOkno(targetUser) {
+            if (!targetUser || targetUser === mojeMeno) return;
+            
+            aktivnyRPUser = targetUser;
+            document.getElementById('rp-title').innerText = `📩 Rýchla Pošta: ${targetUser}`;
+            document.getElementById('rp-popup-modal').style.display = 'flex';
+            
+            prikreslitRPHistoriu();
+            document.getElementById('rp-input').focus();
+        }
+
+        function zatvoritRPOkno() {
+            document.getElementById('rp-popup-modal').style.display = 'none';
+            aktivnyRPUser = null;
+        }
+
+        function prikreslitRPHistoriu() {
+            const box = document.getElementById('rp-messages-box');
+            box.innerHTML = '';
+            
+            if (!aktivnyRPUser || !rpHistories[aktivnyRPUser]) return;
+
+            rpHistories[aktivnyRPUser].forEach(msg => {
+                const msgEl = document.createElement('div');
+                msgEl.classList.add('rp-msg');
+                if (msg.user === mojeMeno) {
+                    msgEl.classList.add('my-rp');
+                } else {
+                    msgEl.classList.add('their-rp');
+                }
+                msgEl.innerText = msg.text;
+                box.appendChild(msgEl);
+            });
+
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function poslatRPSpravu() {
+            const input = document.getElementById('rp-input');
+            const text = input.value.trim();
+            if (text !== "" && aktivnyRPUser) {
+                const msgObj = {
+                    user: mojeMeno,
+                    target: aktivnyRPUser,
+                    text: text,
+                    isPrivate: true
+                };
+
+                socket.emit('chat message', {
+                    text: text,
+                    recipient: aktivnyRPUser
+                });
+
+                if (!rpHistories[aktivnyRPUser]) rpHistories[aktivnyRPUser] = [];
+                rpHistories[aktivnyRPUser].push(msgObj);
+
+                prikreslitRPHistoriu();
+                input.value = "";
+            }
+        }
+
+        function skontrolovatRPEnter(e) {
+            if (e.key === 'Enter') poslatRPSpravu();
+        }
+
+        /* --- OSTATNÉ MODÁLNE OKNÁ A CHAT --- */
         function pridajSmajlika(emoji) {
             const input = document.getElementById('sprava-input');
             input.value += emoji;
@@ -683,34 +885,33 @@
             const city = document.getElementById('edit-city').value;
             const about = document.getElementById('edit-about').value;
 
-            const res = await fetch('/api/profile/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: mojeMeno,
-                    age: age,
-                    city: city,
-                    about: about
-                })
-            });
+            try {
+                const res = await fetch('/api/profile/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: mojeMeno, age, city, about })
+                });
 
-            const data = await res.json();
-            if (data.success) {
-                alert("Profil bol úspešne aktualizovaný!");
-                zatvoritEditorProfilu();
-            } else {
-                alert("Chyba pri ukladaní profilu.");
+                const data = await res.json();
+                if (data.success) {
+                    alert("Profil bol úspešne aktualizovaný!");
+                    zatvoritEditorProfilu();
+                } else {
+                    alert("Chyba pri ukladaní profilu.");
+                }
+            } catch (e) {
+                alert("Server je nedostupný.");
             }
         }
 
         socket.on('view profile card', (data) => {
             const adminTag = data.role === 'admin' ? ' <span class="admin-badge">[ADMIN]</span>' : '';
-            document.getElementById('card-username').innerHTML = data.username + adminTag;
+            document.getElementById('card-username').innerHTML = escapeHtml(data.username) + adminTag;
             document.getElementById('card-avatar').src = data.profile?.avatar || 'https://via.placeholder.com/80/000000/00ffcc?text=User';
             document.getElementById('card-gender').innerText = 'Pohlavie: ' + (data.profile?.gender === 'female' ? 'Žena ♀' : 'Muž ♂');
             document.getElementById('card-age').innerText = 'Vek: ' + (data.profile?.age || 'Nezadaný');
-            document.getElementById('card-city').innerText = 'Mesto: ' + (data.profile?.city || 'Nezadané');
-            document.getElementById('card-about').innerText = 'O mne: ' + (data.profile?.about || 'Ahoj!');
+            document.getElementById('card-city').innerText = 'Mesto: ' + (data.profile?.city ? escapeHtml(data.profile.city) : 'Nezadané');
+            document.getElementById('card-about').innerText = 'O mne: ' + (data.profile?.about ? escapeHtml(data.profile.about) : 'Ahoj!');
 
             const pmBtn = document.getElementById('card-pm-btn');
             const adminActions = document.getElementById('card-admin-actions');
@@ -719,13 +920,12 @@
                 pmBtn.style.display = 'none';
                 adminActions.style.display = 'none';
             } else {
-                pmBtn.style.display = 'block';
+                pmBtn.style.display = 'inline-block';
                 pmBtn.onclick = () => {
-                    nastavitPM(data.username);
                     zatvoritProfil();
+                    otvoritRPOkno(data.username);
                 };
 
-                // Ak som ja ADMIN, ukážem Kick a Ban tlačidlá
                 if (mojeRola === 'admin') {
                     adminActions.style.display = 'flex';
                     document.getElementById('card-kick-btn').onclick = () => {
@@ -748,17 +948,12 @@
             document.getElementById('profile-modal').style.display = 'flex';
         });
 
-        /* --- FUNKCIE PRE POKEC HOVER CARD --- */
+        /* --- HOVER MINIKARTA LOGIKA --- */
         function ukaziKarta(e, username) {
             clearTimeout(hoverTimeout);
-            const card = document.getElementById('pokec-hover-card');
-            
+            mouseX = e.clientX + 12;
+            mouseY = e.clientY + 12;
             socket.emit('get hover profile', username);
-
-            const x = e.clientX + 10;
-            const y = e.clientY + 10;
-            card.style.left = `${x}px`;
-            card.style.top = `${y}px`;
         }
 
         function skrytcKarta() {
@@ -781,7 +976,7 @@
             
             const genderStr = data.profile?.gender === 'female' ? 'Žena' : 'Muž';
             const ageStr = data.profile?.age ? `, ${data.profile.age} r.` : '';
-            const cityStr = data.profile?.city ? ` / ${data.profile.city}` : '';
+            const cityStr = data.profile?.city ? ` / ${escapeHtml(data.profile.city)}` : '';
             
             document.getElementById('hover-details').innerText = `${genderStr}${ageStr}${cityStr}`;
             document.getElementById('hover-avatar').src = data.profile?.avatar || 'https://via.placeholder.com/60/000000/00ffcc?text=User';
@@ -790,13 +985,15 @@
             if (data.username === mojeMeno) {
                 pmBtn.style.display = 'none';
             } else {
-                pmBtn.style.display = 'block';
+                pmBtn.style.display = 'inline-block';
                 pmBtn.onclick = () => {
-                    nastavitPM(data.username);
                     card.style.display = 'none';
+                    otvoritRPOkno(data.username);
                 };
             }
 
+            card.style.left = `${mouseX}px`;
+            card.style.top = `${mouseY}px`;
             card.style.display = 'block';
         });
 
@@ -806,9 +1003,14 @@
         }
 
         async function spustitRegistraciu() {
-            const username = document.getElementById('register-username').value;
-            const password = document.getElementById('register-password').value;
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value.trim();
             const gender = document.getElementById('register-gender').value;
+
+            if (!username || !password) {
+                alert("Vyplň meno aj heslo!");
+                return;
+            }
 
             const res = await fetch('/api/register', {
                 method: 'POST',
@@ -826,8 +1028,13 @@
         }
 
         async function spustitPrihlasenie() {
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+
+            if (!username || !password) {
+                alert("Vyplň meno aj heslo!");
+                return;
+            }
 
             const res = await fetch('/api/login', {
                 method: 'POST',
@@ -849,7 +1056,6 @@
             }
         }
 
-        /* --- NAHRÁVANIE FOTKY CEZ CLOUDINARY --- */
         async function nahratFotku(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -875,24 +1081,7 @@
                 }
             } catch (err) {
                 alert("Chyba pri nahrávaní obrázka!");
-                console.error(err);
             }
-        }
-
-        function nastavitPM(meno) {
-            if (meno === mojeMeno) return;
-            vybranyPrijemca = meno;
-            document.getElementById('kanal-nazov').innerText = `Súkromná správa pre: ${meno}`;
-            document.getElementById('pm-info').style.display = 'inline';
-            document.getElementById('sprava-input').placeholder = `Píšeš súkromne používateľovi ${meno}...`;
-            document.getElementById('sprava-input').focus();
-        }
-
-        function zrusitPM() {
-            vybranyPrijemca = "global";
-            document.getElementById('kanal-nazov').innerText = `Kanál: Globálny Chat`;
-            document.getElementById('pm-info').style.display = 'none';
-            document.getElementById('sprava-input').placeholder = `Napíš správu a stlač Enter...`;
         }
 
         function poslatSpravu() {
@@ -901,7 +1090,7 @@
             if (text !== "") {
                 socket.emit('chat message', {
                     text: text,
-                    recipient: vybranyPrijemca
+                    recipient: "global"
                 });
                 input.value = "";
             }
@@ -916,28 +1105,38 @@
         }
 
         function vykreslitSpravu(msg) {
+            if (msg.isPrivate) {
+                const partner = (msg.user === mojeMeno) ? msg.target : msg.user;
+                if (!rpHistories[partner]) rpHistories[partner] = [];
+                
+                // Uložíme si správu do RP histórie
+                const vyhovuje = rpHistories[partner].some(m => m.text === msg.text && m.user === msg.user);
+                if (!vyhovuje) {
+                    rpHistories[partner].push(msg);
+                }
+
+                // Ak je RP okno s daným človekom otvorené, obnovíme ho, alebo ho otvoríme
+                if (aktivnyRPUser === partner) {
+                    prikreslitRPHistoriu();
+                } else if (msg.user !== mojeMeno) {
+                    otvoritRPOkno(partner);
+                }
+                return;
+            }
+
             const box = document.getElementById('spravy-box');
             const msgEl = document.createElement('div');
             msgEl.classList.add('message');
-
-            if (msg.isPrivate) {
-                msgEl.classList.add('private-msg');
-            }
             
-            const casHtml = msg.time ? `<span class="time">${msg.time}</span>` : '';
-            const avatarHtml = msg.avatar ? `<img src="${msg.avatar}" class="msg-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${msg.user}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${msg.avatar}')">` : '';
+            const safeUser = escapeHtml(msg.user);
+            const safeText = escapeHtml(msg.text);
+            const casHtml = msg.time ? `<span class="time">${escapeHtml(msg.time)}</span>` : '';
+            const avatarHtml = msg.avatar ? `<img src="${escapeHtml(msg.avatar)}" class="msg-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeUser}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${escapeHtml(msg.avatar)}')">` : '';
             const adminTag = msg.role === 'admin' ? '<span class="admin-badge">[ADMIN]</span>' : '';
 
-            let autorText = `<span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${msg.user}')" onmouseleave="skrytcKarta()">${msg.user}</span>${adminTag}`;
-            if (msg.isPrivate) {
-                if (msg.user === mojeMeno) {
-                    autorText = `Pre ${msg.target} <span class="pm-badge">🔒 SÚKROMNE</span>`;
-                } else {
-                    autorText = `Od ${msg.user}${adminTag} <span class="pm-badge">🔒 SÚKROMNE</span>`;
-                }
-            }
+            let autorText = `<span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeUser}')" onmouseleave="skrytcKarta()">${safeUser}</span>${adminTag}`;
 
-            msgEl.innerHTML = `<div class="author"><span>${avatarHtml}${autorText}</span>${casHtml}</div><div>${msg.text}</div>`;
+            msgEl.innerHTML = `<div class="author"><span>${avatarHtml}${autorText}</span>${casHtml}</div><div>${safeText}</div>`;
             
             box.appendChild(msgEl);
             box.scrollTop = box.scrollHeight;
@@ -946,9 +1145,7 @@
         socket.on('chat history', (historia) => {
             const box = document.getElementById('spravy-box');
             box.innerHTML = ''; 
-            historia.forEach(msg => {
-                vykreslitSpravu(msg);
-            });
+            historia.forEach(msg => vykreslitSpravu(msg));
         });
 
         socket.on('chat message', (msg) => {
@@ -962,21 +1159,20 @@
                 const li = document.createElement('li');
                 const ikona = u.gender === 'female' ? '♀️' : '♂️';
                 const adminTag = u.role === 'admin' ? '<span class="admin-badge">[ADMIN]</span>' : '';
+                const safeName = escapeHtml(u.username);
                 
                 let avatarElement = '';
                 if (u.avatar) {
-                    avatarElement = `<img src="${u.avatar}" class="user-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${u.username}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${u.avatar}')">`;
+                    avatarElement = `<img src="${escapeHtml(u.avatar)}" class="user-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${escapeHtml(u.avatar)}')">`;
                 }
 
-                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${u.username}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${u.username}')">${ikona} ${u.username}${adminTag}</span>`;
+                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${safeName}')">${ikona} ${safeName}${adminTag}</span>`;
                 
-                li.onclick = () => nastavitPM(u.username);
-                
+                li.onclick = () => otvoritRPOkno(u.username);
                 uList.appendChild(li);
             });
         });
 
-        // REAKCIE NA KICK A BAN
         socket.on('kicked out', () => {
             alert('Bol si vyhodený z chatu adminom!');
             location.reload();
