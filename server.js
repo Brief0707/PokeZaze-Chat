@@ -168,6 +168,19 @@ io.on('connection', (socket) => {
         }
     });
 
+    // PRIDANÉ: NAČÍTANIE PROFILU PRE HOVER MINIKARTU (POKEC ŠTÝL)
+    socket.on('get hover profile', (targetName) => {
+        if (!targetName) return;
+        const users = loadUsers();
+        const targetUser = users[targetName.toLowerCase()];
+        if (targetUser) {
+            socket.emit('show hover profile', {
+                username: targetUser.username,
+                profile: targetUser.profile
+            });
+        }
+    });
+
     // SPRÁVY (Verejné aj Súkromné)
     socket.on('chat message', (msgData) => {
         if (!socket.username) return;

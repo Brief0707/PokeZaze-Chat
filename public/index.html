@@ -370,6 +370,84 @@
             object-fit: cover;
             margin-bottom: 10px;
         }
+
+        /* --- POKEC HOVER MINIKARTA --- */
+        #pokec-hover-card {
+            position: fixed;
+            z-index: 10000;
+            display: none;
+            width: 250px;
+            background: #fff;
+            color: #222;
+            border-radius: 6px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            border: 1px solid #ccc;
+            pointer-events: auto;
+        }
+
+        .pokec-card-header {
+            background: #0088ff;
+            height: 35px;
+            width: 100%;
+        }
+
+        .pokec-card-body {
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #fff;
+        }
+
+        .pokec-card-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+
+        .pokec-card-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pokec-card-name {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: #111;
+        }
+
+        .pokec-card-sub {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .pokec-card-footer {
+            border-top: 1px solid #eee;
+            padding: 6px;
+            display: flex;
+            justify-content: space-around;
+            background: #f9f9f9;
+        }
+
+        .pokec-card-btn {
+            background: #0088ff;
+            color: #fff;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .pokec-card-btn:hover {
+            background: #0066cc;
+        }
     </style>
 </head>
 <body>
@@ -502,11 +580,28 @@
         </div>
     </div>
 
+    <!-- POKEC MINIKARTA (PRIDANÁ NAVYŠE) -->
+    <div id="pokec-hover-card" onmouseenter="pomenutKarta(true)" onmouseleave="pomenutKarta(false)">
+        <div class="pokec-card-header"></div>
+        <div class="pokec-card-body">
+            <img id="hover-avatar" class="pokec-card-avatar" src="" alt="Avatar">
+            <div class="pokec-card-info">
+                <span id="hover-username" class="pokec-card-name"></span>
+                <span id="hover-details" class="pokec-card-sub"></span>
+            </div>
+        </div>
+        <div class="pokec-card-footer">
+            <button class="pokec-card-btn" id="hover-pm-btn">Nápíš RP</button>
+        </div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         let mojeMeno = "";
         let vybranyPrijemca = "global"; // Defaultne posielame do globálu
+        let hoverTimeout = null;
+        let isHoveringCard = false;
 
         function pridajSmajlika(emoji) {
             const input = document.getElementById('sprava-input');
@@ -586,6 +681,57 @@
             }
 
             document.getElementById('profile-modal').style.display = 'flex';
+        });
+
+        /* --- FUNKCIE PRE POKEC HOVER CARD --- */
+        function ukaziKarta(e, username) {
+            clearTimeout(hoverTimeout);
+            const card = document.getElementById('pokec-hover-card');
+            
+            socket.emit('get hover profile', username);
+
+            const x = e.clientX + 10;
+            const y = e.clientY + 10;
+            card.style.left = `${x}px`;
+            card.style.top = `${y}px`;
+        }
+
+        function skrytcKarta() {
+            hoverTimeout = setTimeout(() => {
+                if (!isHoveringCard) {
+                    document.getElementById('pokec-hover-card').style.display = 'none';
+                }
+            }, 300);
+        }
+
+        function pomenutKarta(isHover) {
+            isHoveringCard = isHover;
+            if (!isHover) skrytcKarta();
+        }
+
+        socket.on('show hover profile', (data) => {
+            const card = document.getElementById('pokec-hover-card');
+            document.getElementById('hover-username').innerText = data.username;
+            
+            const genderStr = data.profile?.gender === 'female' ? 'Žena' : 'Muž';
+            const ageStr = data.profile?.age ? `, ${data.profile.age} r.` : '';
+            const cityStr = data.profile?.city ? ` / ${data.profile.city}` : '';
+            
+            document.getElementById('hover-details').innerText = `${genderStr}${ageStr}${cityStr}`;
+            document.getElementById('hover-avatar').src = data.profile?.avatar || 'https://via.placeholder.com/60/000000/00ffcc?text=User';
+
+            const pmBtn = document.getElementById('hover-pm-btn');
+            if (data.username === mojeMeno) {
+                pmBtn.style.display = 'none';
+            } else {
+                pmBtn.style.display = 'block';
+                pmBtn.onclick = () => {
+                    nastavitPM(data.username);
+                    card.style.display = 'none';
+                };
+            }
+
+            card.style.display = 'block';
         });
 
         function preopnutFormulare(typ) {
@@ -712,9 +858,9 @@
             }
             
             const casHtml = msg.time ? `<span class="time">${msg.time}</span>` : '';
-            const avatarHtml = msg.avatar ? `<img src="${msg.avatar}" class="msg-avatar-img" style="cursor:pointer;" onclick="event.stopPropagation(); zvacsitFotku('${msg.avatar}')">` : '';
+            const avatarHtml = msg.avatar ? `<img src="${msg.avatar}" class="msg-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${msg.user}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${msg.avatar}')">` : '';
             
-            let autorText = msg.user;
+            let autorText = `<span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${msg.user}')" onmouseleave="skrytcKarta()">${msg.user}</span>`;
             if (msg.isPrivate) {
                 if (msg.user === mojeMeno) {
                     autorText = `Pre ${msg.target} <span class="pm-badge">🔒 SÚKROMNE</span>`;
@@ -750,10 +896,10 @@
                 
                 let avatarElement = '';
                 if (u.avatar) {
-                    avatarElement = `<img src="${u.avatar}" class="user-avatar-img" style="cursor:pointer;" onclick="event.stopPropagation(); zvacsitFotku('${u.avatar}')">`;
+                    avatarElement = `<img src="${u.avatar}" class="user-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${u.username}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${u.avatar}')">`;
                 }
 
-                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onclick="event.stopPropagation(); otvoritProfil('${u.username}')">${ikona} ${u.username}</span>`;
+                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${u.username}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${u.username}')">${ikona} ${u.username}</span>`;
                 
                 // Po kliknutí na položku nastavíme PM
                 li.onclick = () => nastavitPM(u.username);
