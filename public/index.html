@@ -287,6 +287,12 @@
             background: #0d0211;
             border-top: 2px solid #00ffcc;
             display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-row {
+            display: flex;
             gap: 10px;
         }
 
@@ -311,6 +317,30 @@
             text-transform: uppercase;
         }
 
+        /* Paleta smajlíkov */
+        .emoji-bar {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .emoji-btn {
+            background: #1a0826;
+            border: 1px solid #ff007f;
+            color: #fff;
+            border-radius: 4px;
+            padding: 3px 7px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .emoji-btn:hover {
+            background: #ff007f;
+            box-shadow: 0 0 5px #ff007f;
+        }
+
         .pm-badge {
             background: #b800ff;
             color: white;
@@ -318,6 +348,27 @@
             padding: 2px 6px;
             border-radius: 3px;
             margin-left: 8px;
+        }
+
+        /* Modal Okno Profilu */
+        .profile-card-modal {
+            background: #1a0826;
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 20px #00ffcc;
+            border-radius: 8px;
+            padding: 20px;
+            width: 300px;
+            color: #00ffcc;
+            text-align: center;
+        }
+
+        .profile-card-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            border: 2px solid #ff007f;
+            object-fit: cover;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -388,8 +439,21 @@
                 </div>
                 <div id="spravy-box" class="messages-container"></div>
                 <div class="input-area">
-                    <input type="text" id="sprava-input" placeholder="Napíš správu..." onkeypress="skontrolovatEnter(event)">
-                    <button onclick="poslatSpravu()">Odoslať</button>
+                    <!-- Lišta retro smajlíkov -->
+                    <div class="emoji-bar">
+                        <button class="emoji-btn" onclick="pridajSmajlika('😊')">😊</button>
+                        <button class="emoji-btn" onclick="pridajSmajlika('😂')">😂</button>
+                        <button class="emoji-btn" onclick="pridajSmajlika('😎')">😎</button>
+                        <button class="emoji-btn" onclick="pridajSmajlika('🔥')">🔥</button>
+                        <button class="emoji-btn" onclick="pridajSmajlika('❤️')">❤️</button>
+                        <button class="emoji-btn" onclick="pridajSmajlika('👍')">👍</button>
+                        <button class="emoji-btn" onclick="pridajSmajlika('⚡')">⚡</button>
+                        <button class="emoji-btn" onclick="pridajSmajlika('😜')">😜</button>
+                    </div>
+                    <div class="input-row">
+                        <input type="text" id="sprava-input" placeholder="Napíš správu..." onkeypress="skontrolovatEnter(event)">
+                        <button onclick="poslatSpravu()">Odoslať</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -400,11 +464,31 @@
         <img id="modal-img" style="max-width:50%; max-height:50%; border:2px solid #00ffcc; box-shadow:0 0 20px #00ffcc; border-radius:8px; object-fit:contain;">
     </div>
 
+    <!-- Modal pre Profilovú Kartu -->
+    <div id="profile-modal" style="display:none; position:fixed; z-index:998; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center;">
+        <div class="profile-card-modal">
+            <img id="card-avatar" class="profile-card-avatar" src="" alt="Avatar">
+            <h3 id="card-username" style="color:#ff007f; margin-bottom:10px;"></h3>
+            <p id="card-gender" style="margin-bottom:5px;"></p>
+            <p id="card-age" style="margin-bottom:5px;"></p>
+            <p id="card-city" style="margin-bottom:5px;"></p>
+            <p id="card-about" style="font-style:italic; border-top:1px dashed #00ffcc; padding-top:8px; margin-top:8px;"></p>
+            <button class="btn" style="margin-top:15px;" id="card-pm-btn">Poslať PM</button>
+            <button class="btn btn-avatar" style="margin-top:5px;" onclick="zatvoritProfil()">Zatvoriť</button>
+        </div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         let mojeMeno = "";
         let vybranyPrijemca = "global"; // Defaultne posielame do globálu
+
+        function pridajSmajlika(emoji) {
+            const input = document.getElementById('sprava-input');
+            input.value += emoji;
+            input.focus();
+        }
 
         function zvacsitFotku(url) {
             const modal = document.getElementById('image-modal');
@@ -416,6 +500,36 @@
         function zatvoritFotku() {
             document.getElementById('image-modal').style.display = 'none';
         }
+
+        function otvoritProfil(username) {
+            socket.emit('get profile', username);
+        }
+
+        function zatvoritProfil() {
+            document.getElementById('profile-modal').style.display = 'none';
+        }
+
+        socket.on('view profile card', (data) => {
+            document.getElementById('card-username').innerText = data.username;
+            document.getElementById('card-avatar').src = data.profile?.avatar || 'https://via.placeholder.com/80/000000/00ffcc?text=User';
+            document.getElementById('card-gender').innerText = 'Pohlavie: ' + (data.profile?.gender === 'female' ? 'Žena ♀' : 'Muž ♂');
+            document.getElementById('card-age').innerText = 'Vek: ' + (data.profile?.age || 'Nezadaný');
+            document.getElementById('card-city').innerText = 'Mesto: ' + (data.profile?.city || 'Nezadané');
+            document.getElementById('card-about').innerText = 'O mne: ' + (data.profile?.about || 'Ahoj!');
+
+            const pmBtn = document.getElementById('card-pm-btn');
+            if (data.username === mojeMeno) {
+                pmBtn.style.display = 'none';
+            } else {
+                pmBtn.style.display = 'block';
+                pmBtn.onclick = () => {
+                    nastavitPM(data.username);
+                    zatvoritProfil();
+                };
+            }
+
+            document.getElementById('profile-modal').style.display = 'flex';
+        });
 
         function preopnutFormulare(typ) {
             document.getElementById('login-card').style.display = typ === 'login' ? 'block' : 'none';
@@ -582,9 +696,9 @@
                     avatarElement = `<img src="${u.avatar}" class="user-avatar-img" style="cursor:pointer;" onclick="event.stopPropagation(); zvacsitFotku('${u.avatar}')">`;
                 }
 
-                li.innerHTML = `${avatarElement} <span>${ikona} ${u.username}</span>`;
+                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onclick="event.stopPropagation(); otvoritProfil('${u.username}')">${ikona} ${u.username}</span>`;
                 
-                // Po kliknutí na používateľa nastavíme Súkromnú správu
+                // Po kliknutí na položku nastavíme PM
                 li.onclick = () => nastavitPM(u.username);
                 
                 uList.appendChild(li);
