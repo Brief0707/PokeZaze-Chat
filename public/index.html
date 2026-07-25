@@ -453,9 +453,9 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // DOPLŇ SVOJE ÚDAJE Z CLOUDINARY ÚČTU:
-            const CLOUD_NAME = "DOPLN_SVOJE_CLOUD_NAME"; 
-            const UPLOAD_PRESET = "DOPLN_SVOJ_UNSIGNED_PRESET";
+            // NASTAVENÉ ÚDAJE Z CLOUDINARY ÚČTU:
+            const CLOUD_NAME = "juyie103"; 
+            const UPLOAD_PRESET = "globtel_preset";
 
             const formData = new FormData();
             formData.append("file", file);
@@ -470,6 +470,8 @@
                 const data = await res.json();
                 if (data.secure_url) {
                     socket.emit('change avatar', data.secure_url);
+                } else if (data.error) {
+                    alert("Chyba z Cloudinary: " + data.error.message);
                 }
             } catch (err) {
                 alert("Chyba pri nahrávaní obrázka!");
