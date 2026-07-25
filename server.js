@@ -48,7 +48,8 @@ app.post('/api/register', async (req, res) => {
             gender: gender || 'male',
             age: '',
             city: '',
-            about: 'Ahoj!'
+            about: 'Ahoj!',
+            avatar: '' // Predvolený prázdny avatar
         }
     };
 
@@ -73,17 +74,20 @@ app.post('/api/profile/update', (req, res) => {
     const users = loadUsers();
 
     if (users[username?.toLowerCase()]) {
+        const currentAvatar = users[username.toLowerCase()].profile.avatar || '';
         users[username.toLowerCase()].profile = {
             age: age || '',
             city: city || '',
             about: about || '',
-            gender: gender || 'male'
+            gender: gender || 'male',
+            avatar: currentAvatar
         };
         saveUsers(users);
         
         const activeList = Object.values(activeUsers).map(u => ({
             username: u.username,
-            gender: users[u.username.toLowerCase()]?.profile.gender || 'male'
+            gender: users[u.username.toLowerCase()]?.profile.gender || 'male',
+            avatar: users[u.username.toLowerCase()]?.profile.avatar || ''
         }));
         io.emit('update userlist', activeList);
 
@@ -101,7 +105,8 @@ io.on('connection', (socket) => {
         const users = loadUsers();
         const activeList = Object.values(activeUsers).map(u => ({
             username: u.username,
-            gender: users[u.username.toLowerCase()]?.profile.gender || 'male'
+            gender: users[u.username.toLowerCase()]?.profile.gender || 'male',
+            avatar: users[u.username.toLowerCase()]?.profile.avatar || ''
         }));
 
         io.emit('update userlist', activeList);
@@ -121,6 +126,28 @@ io.on('connection', (socket) => {
         });
     });
 
+    // POSLANIE NOVEJ FOTKY/AVATARA
+    socket.on('change avatar', (avatarUrl) => {
+        if (!socket.username) return;
+
+        const users = loadUsers();
+        const userKey = socket.username.toLowerCase();
+
+        if (users[userKey]) {
+            users[userKey].profile.avatar = avatarUrl;
+            saveUsers(users);
+
+            // Aktualizujeme zoznam aktívnych používateľov s novou fotkou
+            const activeList = Object.values(activeUsers).map(u => ({
+                username: u.username,
+                gender: users[u.username.toLowerCase()]?.profile.gender || 'male',
+                avatar: users[u.username.toLowerCase()]?.profile.avatar || ''
+            }));
+
+            io.emit('update userlist', activeList);
+        }
+    });
+
     socket.on('get profile', (targetName) => {
         if (!targetName) return;
         const users = loadUsers();
@@ -137,9 +164,12 @@ io.on('connection', (socket) => {
     socket.on('chat message', (msgData) => {
         if (!socket.username) return;
 
+        const users = loadUsers();
+        const currentUser = users[socket.username.toLowerCase()];
+        const userAvatar = currentUser?.profile?.avatar || '';
+
         const cas = new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
 
-        // Ak používateľ posiela objekt (napr. so súkromným príjemcom) alebo obyčajný text
         let text = typeof msgData === 'object' ? msgData.text : msgData;
         let recipient = typeof msgData === 'object' ? msgData.recipient : null;
 
@@ -148,13 +178,13 @@ io.on('connection', (socket) => {
 
         // AK JE TO SÚKROMNÁ SPRÁVA
         if (recipient && recipient !== 'global') {
-            // Nájdeme socket príjemcu
             const recipientSocketId = Object.keys(activeUsers).find(
                 id => activeUsers[id].username.toLowerCase() === recipient.toLowerCase()
             );
 
             const privateMsg = {
                 user: socket.username,
+                avatar: userAvatar,
                 text: text,
                 time: cas,
                 isPrivate: true,
@@ -162,9 +192,7 @@ io.on('connection', (socket) => {
             };
 
             if (recipientSocketId) {
-                // Pošleme správu príjemcovi
                 io.to(recipientSocketId).emit('chat message', privateMsg);
-                // Pošleme kópiu aj odosielateľovi, aby si ju videl u seba
                 socket.emit('chat message', privateMsg);
             } else {
                 socket.emit('chat message', {
@@ -178,6 +206,7 @@ io.on('connection', (socket) => {
         else {
             const spravaObjekt = { 
                 user: socket.username, 
+                avatar: userAvatar,
                 text: text,
                 time: cas,
                 isPrivate: false
@@ -196,7 +225,8 @@ io.on('connection', (socket) => {
             const users = loadUsers();
             const activeList = Object.values(activeUsers).map(u => ({
                 username: u.username,
-                gender: users[u.username.toLowerCase()]?.profile.gender || 'male'
+                gender: users[u.username.toLowerCase()]?.profile.gender || 'male',
+                avatar: users[u.username.toLowerCase()]?.profile.avatar || ''
             }));
             io.emit('update userlist', activeList);
         }

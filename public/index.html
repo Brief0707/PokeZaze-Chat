@@ -95,6 +95,20 @@
             box-shadow: 0 0 15px #e0006c;
         }
 
+        .btn-avatar {
+            background: transparent;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            box-shadow: 0 0 8px #00ffcc;
+            margin-top: 5px;
+        }
+
+        .btn-avatar:hover {
+            background: #00ffcc;
+            color: #0d0211;
+            box-shadow: 0 0 12px #00ffcc;
+        }
+
         .btn-logout {
             background: #ff0055;
             box-shadow: 0 0 10px #ff0055;
@@ -171,6 +185,9 @@
             border-radius: 4px;
             cursor: pointer;
             transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .list-items li:hover {
@@ -180,6 +197,26 @@
         .list-items li.active {
             border-color: #00ffcc;
             box-shadow: 0 0 5px #00ffcc;
+        }
+
+        /* Fotky v zozname a správach */
+        .user-avatar-img {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid #ff007f;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .msg-avatar-img {
+            width: 22px;
+            height: 22px;
+            border-radius: 3px;
+            border: 1px solid #00ffcc;
+            object-fit: cover;
+            vertical-align: middle;
+            margin-right: 6px;
         }
 
         .main-chat {
@@ -337,6 +374,10 @@
                 <ul id="pouzivatelia-list" class="list-items">
                 </ul>
 
+                <!-- Tlačidlo pre výber fotky z PC -->
+                <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="nahratFotku(event)">
+                <button class="btn btn-avatar" onclick="document.getElementById('avatarFileInput').click()">📷 Zmeniť fotku</button>
+
                 <button class="btn btn-logout" onclick="odhlasitSa()">Odhlásiť sa</button>
             </div>
             
@@ -407,6 +448,35 @@
             }
         }
 
+        /* --- NAHRÁVANIE FOTKY CEZ CLOUDINARY --- */
+        async function nahratFotku(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // DOPLŇ SVOJE ÚDAJE Z CLOUDINARY ÚČTU:
+            const CLOUD_NAME = "DOPLN_SVOJE_CLOUD_NAME"; 
+            const UPLOAD_PRESET = "DOPLN_SVOJ_UNSIGNED_PRESET";
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", UPLOAD_PRESET);
+
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.secure_url) {
+                    socket.emit('change avatar', data.secure_url);
+                }
+            } catch (err) {
+                alert("Chyba pri nahrávaní obrázka!");
+                console.error(err);
+            }
+        }
+
         function nastavitPM(meno) {
             if (meno === mojeMeno) return; // Nemôžeš písať sám sebe
             vybranyPrijemca = meno;
@@ -453,6 +523,7 @@
             }
             
             const casHtml = msg.time ? `<span class="time">${msg.time}</span>` : '';
+            const avatarHtml = msg.avatar ? `<img src="${msg.avatar}" class="msg-avatar-img">` : '';
             
             let autorText = msg.user;
             if (msg.isPrivate) {
@@ -463,7 +534,7 @@
                 }
             }
 
-            msgEl.innerHTML = `<div class="author"><span>${autorText}</span>${casHtml}</div><div>${msg.text}</div>`;
+            msgEl.innerHTML = `<div class="author"><span>${avatarHtml}${autorText}</span>${casHtml}</div><div>${msg.text}</div>`;
             
             box.appendChild(msgEl);
             box.scrollTop = box.scrollHeight;
@@ -487,7 +558,13 @@
             list.forEach(u => {
                 const li = document.createElement('li');
                 const ikona = u.gender === 'female' ? '♀️' : '♂️';
-                li.innerText = `${ikona} ${u.username}`;
+                
+                let avatarElement = '';
+                if (u.avatar) {
+                    avatarElement = `<img src="${u.avatar}" class="user-avatar-img">`;
+                }
+
+                li.innerHTML = `${avatarElement} <span>${ikona} ${u.username}</span>`;
                 
                 // Po kliknutí na používateľa nastavíme Súkromnú správu
                 li.onclick = () => nastavitPM(u.username);
