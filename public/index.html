@@ -164,11 +164,11 @@
             text-decoration: underline;
         }
 
-        /* --- CHATOVACIE ROZHRANIE --- */
+        /* --- CHATOVACIE ROZHRANIE (POKEC STYLE 3-STĹPCE) --- */
         #chat-interface {
             display: none;
-            width: 95vw;
-            height: 90vh;
+            width: 98vw;
+            height: 95vh;
             background: #14051f;
             border: 2px solid #00ffcc;
             box-shadow: 0 0 20px #00ffcc;
@@ -178,19 +178,22 @@
         .chat-layout {
             display: flex;
             height: 100%;
+            width: 100%;
         }
 
-        .sidebar {
-            width: 260px;
+        /* 1. ĽAVÝ STĹPEC (Miestnosti) */
+        .sidebar-left {
+            width: 240px;
             background: #0d0211;
             border-right: 2px solid #00ffcc;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             gap: 15px;
+            flex-shrink: 0;
         }
 
-        .sidebar h3 {
+        .sidebar-left h3 {
             color: #ff007f;
             text-shadow: 0 0 5px #ff007f;
             font-size: 1.1rem;
@@ -199,13 +202,90 @@
             text-transform: uppercase;
         }
 
+        /* 2. STREDNÝ STĹPEC (Hlavný chat) */
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #14051f;
+            min-width: 0;
+        }
+
+        .chat-header {
+            padding: 15px;
+            background: #0d0211;
+            border-bottom: 2px solid #00ffcc;
+            color: #ff007f;
+            text-shadow: 0 0 5px #ff007f;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* 3. PRAVÝ STĹPEC (Ľudia v miestnosti + Reklama na štýl Pokecu) */
+        .sidebar-right {
+            width: 260px;
+            background: #0d0211;
+            border-left: 2px solid #00ffcc;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-right-top {
+            padding: 15px;
+            border-bottom: 2px solid #00ffcc;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-right-top h3 {
+            color: #ff007f;
+            text-shadow: 0 0 5px #ff007f;
+            font-size: 1.1rem;
+            border-bottom: 1px dashed #ff007f;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        /* Pokec-like reklamný box dole v pravom stĺpci */
+        .sidebar-right-banner {
+            flex: 1;
+            background: #1a0826;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-top: 1px dashed #333;
+        }
+
+        .sidebar-right-banner p {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 10px;
+        }
+
         .list-items {
             list-style: none;
             display: flex;
             flex-direction: column;
             gap: 8px;
             overflow-y: auto;
-            max-height: 40vh;
         }
 
         .list-items li {
@@ -246,34 +326,6 @@
             object-fit: cover;
             vertical-align: middle;
             margin-right: 6px;
-        }
-
-        .main-chat {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #14051f;
-        }
-
-        .chat-header {
-            padding: 15px;
-            background: #0d0211;
-            border-bottom: 2px solid #00ffcc;
-            color: #ff007f;
-            text-shadow: 0 0 5px #ff007f;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .messages-container {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
         }
 
         .message {
@@ -635,16 +687,16 @@
         </div>
     </div>
 
+    <!-- CHATOVACIE ROZHRANIE - POKEC LAYOUT (3 STĹPCE) -->
     <div id="chat-interface">
         <div class="chat-layout">
-            <div class="sidebar">
+            
+            <!-- 1. ĽAVÝ STĹPEC: Miestnosti -->
+            <div class="sidebar-left">
                 <h3>Miestnosti</h3>
                 <ul class="list-items">
                     <li class="active">🌐 Globálny Chat</li>
                 </ul>
-                
-                <h3>Online Ľudia</h3>
-                <ul id="pouzivatelia-list" class="list-items"></ul>
 
                 <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="nahratFotku(event)">
                 <button class="btn btn-avatar" onclick="document.getElementById('avatarFileInput').click()">📷 Zmeniť fotku</button>
@@ -653,6 +705,7 @@
                 <button class="btn btn-logout" onclick="odhlasitSa()">Odhlásiť sa</button>
             </div>
             
+            <!-- 2. STREDNÝ STĹPEC: Hlavný chat -->
             <div class="main-chat">
                 <div class="chat-header">
                     <span>Kanál: Globálny Chat</span>
@@ -675,6 +728,20 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 3. PRAVÝ STĹPEC: Ľudia v miestnosti + Reklamný box (Pokec štýl) -->
+            <div class="sidebar-right">
+                <div class="sidebar-right-top">
+                    <h3>Ľudia v miestnosti</h3>
+                    <ul id="pouzivatelia-list" class="list-items"></ul>
+                </div>
+                <div class="sidebar-right-banner">
+                    <span style="font-size: 1.5rem;">⚡</span>
+                    <strong style="font-size: 0.85rem; color: #ff007f; margin-top: 5px;">Globtel bez reklám</strong>
+                    <p>Podporte prevádzku chatu a užite si ho naplno.</p>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -763,7 +830,7 @@
         let mojeMeno = "";
         let mojeRola = "user";
         let aktivnyRPUser = null; 
-        const rpHistories = {}; // Pamäť RP správ pre jednotlivých používateľov
+        const rpHistories = {}; 
 
         let hoverTimeout = null;
         let isHoveringCard = false;
@@ -1109,13 +1176,11 @@
                 const partner = (msg.user === mojeMeno) ? msg.target : msg.user;
                 if (!rpHistories[partner]) rpHistories[partner] = [];
                 
-                // Uložíme si správu do RP histórie
                 const vyhovuje = rpHistories[partner].some(m => m.text === msg.text && m.user === msg.user);
                 if (!vyhovuje) {
                     rpHistories[partner].push(msg);
                 }
 
-                // Ak je RP okno s daným človekom otvorené, obnovíme ho, alebo ho otvoríme
                 if (aktivnyRPUser === partner) {
                     prikreslitRPHistoriu();
                 } else if (msg.user !== mojeMeno) {
