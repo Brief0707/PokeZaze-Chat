@@ -12,7 +12,7 @@ const io = new Server(server);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// --- PRIPOJENIE K MONGODB ATLAS ---
+// --- PRIIPOJENIE K MONGODB ATLAS ---
 const mongoURI = process.env.MONGO_URI;
 
 if (mongoURI) {
@@ -23,12 +23,11 @@ if (mongoURI) {
     console.warn('⚠️ Varovanie: MONGO_URI premenná nebola nájdená!');
 }
 
-// Schéma používateľa pre MongoDB
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     usernameLower: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, default: 'user' }, // 'admin' alebo 'user'
+    role: { type: String, default: 'user' },
     isBanned: { type: Boolean, default: false },
     profile: {
         gender: { type: String, default: 'male' },
@@ -41,26 +40,38 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// História správ a aktívni používatelia v pamäti
-let historiaSprav = [];
+// História správ pre jednotlivé miestnosti
+const historiaSprav = {
+    global: [],
+    zoznamka: [],
+    pohody: [],
+    caffe: []
+};
+
 const activeUsers = {};
 
-// Pomocná funkcia na rozoslanie zoznamu online ľudí (Optimalizovaná - bez zbytočných DB dotazov)
-function broadcastActiveUsers() {
-    const activeList = Object.values(activeUsers).map(u => ({
-        username: u.username,
-        role: u.role,
-        gender: u.gender,
-        avatar: u.avatar
-    }));
-    io.emit('update userlist', activeList);
+// Pomocná funkcija na rozoslanie zoznamu online ľudí podľa miestností
+function broadcastActiveUsers(room) {
+    if (room) {
+        const activeList = Object.values(activeUsers)
+            .filter(u => u.room === room)
+            .map(u => ({
+                username: u.username,
+                role: u.role,
+                gender: u.gender,
+                avatar: u.avatar
+            }));
+        io.to(room).emit('update userlist', activeList);
+    } else {
+        const miestnosti = ['global', 'zoznamka', 'pohody', 'caffe'];
+        miestnosti.forEach(r => broadcastActiveUsers(r));
+    }
 }
 
 // --- REGISTRÁCIA ---
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password, gender } = req.body;
-
         if (!username || !password) {
             return res.json({ success: false, message: "Vyplň všetky polia" });
         }
@@ -73,8 +84,6 @@ app.post('/api/register', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Ak sa registruje meno Admin / admin, dostane automaticky rolu 'admin'
         const isAdmin = lower === 'admin';
 
         const newUser = new User({
@@ -83,13 +92,7 @@ app.post('/api/register', async (req, res) => {
             password: hashedPassword,
             role: isAdmin ? 'admin' : 'user',
             isBanned: false,
-            profile: {
-                gender: gender || 'male',
-                age: '',
-                city: '',
-                about: 'Ahoj!',
-                avatar: ''
-            }
+            profile: { gender: gender || 'male', age: '', city: '', about: 'Ahoj!', avatar: '' }
         });
 
         await newUser.save();
@@ -115,23 +118,16 @@ app.post('/api/login', async (req, res) => {
             return res.json({ success: false, message: "Nesprávne meno alebo heslo" });
         }
 
-        // Kontrola BANu
         if (user.isBanned) {
             return res.json({ success: false, message: "Tvoj účet bol zablokovaný (BAN)!" });
         }
 
-        // Auto-fix pre Admina (ak by z minulosti nemal priradenú rolu admin)
         if (lower === 'admin' && user.role !== 'admin') {
             user.role = 'admin';
             await user.save();
         }
 
-        res.json({ 
-            success: true, 
-            username: user.username, 
-            role: user.role, 
-            profile: user.profile 
-        });
+        res.json({ success: true, username: user.username, role: user.role, profile: user.profile });
     } catch (err) {
         console.error("Chyba prihlásenia:", err);
         res.json({ success: false, message: "Chyba na serveri" });
@@ -157,7 +153,6 @@ app.post('/api/profile/update', async (req, res) => {
 
             await user.save();
 
-            // Aktualizácia aktívneho stavu v pamäti
             for (const socketId in activeUsers) {
                 if (activeUsers[socketId].username.toLowerCase() === userKey) {
                     activeUsers[socketId].gender = user.profile.gender;
@@ -189,19 +184,22 @@ io.on('connection', (socket) => {
 
         socket.username = dbUser ? dbUser.username : username;
         socket.role = dbUser?.role || 'user';
+        let defaultRoom = 'global';
 
-        // Uloženie údajov do activeUsers pre rýchly prístup bez DB dotazov
+        socket.join(defaultRoom);
+
         activeUsers[socket.id] = { 
             username: socket.username, 
             role: socket.role, 
             gender: dbUser?.profile?.gender || 'male',
             avatar: dbUser?.profile?.avatar || '',
+            room: defaultRoom,
             socketId: socket.id 
         };
 
-        broadcastActiveUsers();
+        broadcastActiveUsers(defaultRoom);
 
-        socket.emit('chat history', historiaSprav);
+        socket.emit('chat history', historiaSprav[defaultRoom]);
 
         socket.emit('chat message', { 
             user: 'Systém', 
@@ -216,7 +214,25 @@ io.on('connection', (socket) => {
         });
     });
 
-    // ADMIN PRÍKAZY: KICK A BAN
+    // PREPÍNANIE MIESTNOSTÍ
+    socket.on('switch room', (newRoom) => {
+        if (!socket.username || !['global', 'zoznamka', 'pohody', 'caffe'].includes(newRoom)) return;
+
+        const oldRoom = activeUsers[socket.id]?.room || 'global';
+        socket.leave(oldRoom);
+        socket.join(newRoom);
+
+        if (activeUsers[socket.id]) {
+            activeUsers[socket.id].room = newRoom;
+        }
+
+        broadcastActiveUsers(oldRoom);
+        broadcastActiveUsers(newRoom);
+
+        socket.emit('chat history', historiaSprav[newRoom] || []);
+    });
+
+    // ADMIN PRÍKAZY
     socket.on('admin kick user', async (targetUsername) => {
         if (socket.role !== 'admin') return;
 
@@ -226,13 +242,14 @@ io.on('connection', (socket) => {
 
         if (targetSocketId) {
             const targetSocket = io.sockets.sockets.get(targetSocketId);
+            const userRoom = activeUsers[targetSocketId]?.room;
             if (targetSocket) {
                 targetSocket.emit('kicked out');
                 targetSocket.disconnect(true);
             }
 
             delete activeUsers[targetSocketId];
-            broadcastActiveUsers();
+            if (userRoom) broadcastActiveUsers(userRoom);
 
             io.emit('chat message', {
                 user: 'Systém',
@@ -253,13 +270,14 @@ io.on('connection', (socket) => {
 
         if (targetSocketId) {
             const targetSocket = io.sockets.sockets.get(targetSocketId);
+            const userRoom = activeUsers[targetSocketId]?.room;
             if (targetSocket) {
                 targetSocket.emit('banned out');
                 targetSocket.disconnect(true);
             }
 
             delete activeUsers[targetSocketId];
-            broadcastActiveUsers();
+            if (userRoom) broadcastActiveUsers(userRoom);
         }
 
         io.emit('chat message', {
@@ -269,7 +287,6 @@ io.on('connection', (socket) => {
         });
     });
 
-    // POSLANIE NOVEJ FOTKY/AVATARA
     socket.on('change avatar', async (avatarUrl) => {
         if (!socket.username) return;
 
@@ -281,39 +298,28 @@ io.on('connection', (socket) => {
 
             if (activeUsers[socket.id]) {
                 activeUsers[socket.id].avatar = avatarUrl;
+                broadcastActiveUsers(activeUsers[socket.id].room);
             }
-
-            broadcastActiveUsers();
         }
     });
 
-    // ZOBRAZENIE PROFILOVEJ KARTY
     socket.on('get profile', async (targetName) => {
         if (!targetName) return;
         const user = await User.findOne({ usernameLower: targetName.toLowerCase() });
         if (user) {
-            socket.emit('view profile card', {
-                username: user.username,
-                role: user.role,
-                profile: user.profile
-            });
+            socket.emit('view profile card', { username: user.username, role: user.role, profile: user.profile });
         }
     });
 
-    // NAČÍTANIE PROFILU PRE HOVER MINIKARTU
     socket.on('get hover profile', async (targetName) => {
         if (!targetName) return;
         const user = await User.findOne({ usernameLower: targetName.toLowerCase() });
         if (user) {
-            socket.emit('show hover profile', {
-                username: user.username,
-                role: user.role,
-                profile: user.profile
-            });
+            socket.emit('show hover profile', { username: user.username, role: user.role, profile: user.profile });
         }
     });
 
-    // SPRÁVY (Verejné aj Súkromné)
+    // SPRÁVY (Verejné v miestnosti / Súkromné)
     socket.on('chat message', async (msgData) => {
         if (!socket.username) return;
 
@@ -330,7 +336,7 @@ io.on('connection', (socket) => {
         if (!text || text.trim() === '') return;
         text = text.trim();
 
-        // SÚKROMNÁ SPRÁVA
+        // SÚKROMNÁ SPRÁVA (RP)
         if (recipient && recipient !== 'global') {
             const recipientSocketId = Object.keys(activeUsers).find(
                 id => activeUsers[id].username.toLowerCase() === recipient.toLowerCase()
@@ -357,8 +363,9 @@ io.on('connection', (socket) => {
                 });
             }
         } 
-        // VEREJNÁ SPRÁVA
+        // VEREJNÁ SPRÁVA V DANEJ MIESTNOSTI
         else {
+            const currentRoom = activeUsers[socket.id]?.room || 'global';
             const spravaObjekt = { 
                 user: socket.username, 
                 role: userRole,
@@ -368,17 +375,19 @@ io.on('connection', (socket) => {
                 isPrivate: false
             };
 
-            historiaSprav.push(spravaObjekt);
-            if (historiaSprav.length > 50) historiaSprav.shift();
+            if (!historiaSprav[currentRoom]) historiaSprav[currentRoom] = [];
+            historiaSprav[currentRoom].push(spravaObjekt);
+            if (historiaSprav[currentRoom].length > 50) historiaSprav[currentRoom].shift();
 
-            io.emit('chat message', spravaObjekt);
+            io.to(currentRoom).emit('chat message', spravaObjekt);
         }
     });
 
     socket.on('disconnect', () => {
         if (socket.id && activeUsers[socket.id]) {
+            const userRoom = activeUsers[socket.id].room;
             delete activeUsers[socket.id];
-            broadcastActiveUsers();
+            if (userRoom) broadcastActiveUsers(userRoom);
         }
     });
 });

@@ -232,7 +232,7 @@
             gap: 10px;
         }
 
-        /* 3. PRAVÝ STĹPEC (Ľudia v miestnosti + Reklama na štýl Pokecu) */
+        /* 3. PRAVÝ STĹPEC (Ľudia v miestnosti + Reklama) */
         .sidebar-right {
             width: 260px;
             background: #0d0211;
@@ -261,7 +261,6 @@
             text-transform: uppercase;
         }
 
-        /* Pokec-like reklamný box dole v pravom stĺpci */
         .sidebar-right-banner {
             flex: 1;
             background: #1a0826;
@@ -694,8 +693,11 @@
             <!-- 1. ĽAVÝ STĹPEC: Miestnosti -->
             <div class="sidebar-left">
                 <h3>Miestnosti</h3>
-                <ul class="list-items">
-                    <li class="active">🌐 Globálny Chat</li>
+                <ul class="list-items" id="rooms-list">
+                    <li class="active" onclick="zmenMiestnost('global', 'Globálny Chat', this)">🌐 Globálny Chat</li>
+                    <li onclick="zmenMiestnost('zoznamka', 'Zoznamka', this)">💖 Zoznamka</li>
+                    <li onclick="zmenMiestnost('pohody', 'Do pohody', this)">😎 Do pohody</li>
+                    <li onclick="zmenMiestnost('caffe', 'Caffe', this)">☕ Caffe</li>
                 </ul>
 
                 <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="nahratFotku(event)">
@@ -708,7 +710,7 @@
             <!-- 2. STREDNÝ STĹPEC: Hlavný chat -->
             <div class="main-chat">
                 <div class="chat-header">
-                    <span>Kanál: Globálny Chat</span>
+                    <span id="kanal-nazov">Kanál: Globálny Chat</span>
                 </div>
                 <div id="spravy-box" class="messages-container"></div>
                 <div class="input-area">
@@ -729,7 +731,7 @@
                 </div>
             </div>
 
-            <!-- 3. PRAVÝ STĹPEC: Ľudia v miestnosti + Reklamný box (Pokec štýl) -->
+            <!-- 3. PRAVÝ STĹPEC: Ľudia v miestnosti + Reklamný box -->
             <div class="sidebar-right">
                 <div class="sidebar-right-top">
                     <h3>Ľudia v miestnosti</h3>
@@ -845,6 +847,17 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+        }
+
+        /* --- PREPÍNANIE MIESTNOSTÍ --- */
+        function zmenMiestnost(roomKey, roomName, element) {
+            document.querySelectorAll('#rooms-list li').forEach(li => li.classList.remove('active'));
+            element.classList.add('active');
+
+            document.getElementById('kanal-nazov').innerText = `Kanál: ${roomName}`;
+            document.getElementById('sprava-input').placeholder = `Napíš správu do miestnosti ${roomName}...`;
+
+            socket.emit('switch room', roomKey);
         }
 
         /* --- RP POP-UP OKNO LOGIKA --- */
