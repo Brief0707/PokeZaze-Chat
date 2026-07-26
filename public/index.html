@@ -18,8 +18,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* --- PRIHLASOVACIA OBRAZOVKA --- */
@@ -27,6 +27,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 100%;
+            padding: 20px;
         }
 
         .auth-container {
@@ -35,7 +37,8 @@
             box-shadow: 0 0 15px #ff007f, inset 0 0 10px #1a0826;
             padding: 30px;
             border-radius: 8px;
-            width: 350px;
+            width: 100%;
+            max-width: 350px;
             text-align: center;
         }
 
@@ -53,6 +56,7 @@
             font-size: 2.2rem;
             margin-bottom: 25px;
             font-weight: bold;
+            text-align: center;
         }
 
         .form-group {
@@ -167,12 +171,12 @@
         /* --- CHATOVACIE ROZHRANIE (POKEC STYLE 3-STĹPCE) --- */
         #chat-interface {
             display: none;
-            width: 98vw;
-            height: 95vh;
+            width: 100vw;
+            height: 100vh;
             background: #14051f;
-            border: 2px solid #00ffcc;
-            box-shadow: 0 0 20px #00ffcc;
-            border-radius: 8px;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
         }
 
         .chat-layout {
@@ -225,7 +229,7 @@
 
         .messages-container {
             flex: 1;
-            padding: 20px;
+            padding: 15px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -248,7 +252,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: 60vh;
+            max-height: 50vh;
             overflow-y: auto;
         }
 
@@ -332,7 +336,7 @@
             padding: 10px;
             border-radius: 4px;
             border-left: 3px solid #ff007f;
-            max-width: 80%;
+            max-width: 85%;
             word-wrap: break-word;
         }
 
@@ -359,7 +363,7 @@
         }
 
         .input-area {
-            padding: 15px;
+            padding: 12px;
             background: #0d0211;
             border-top: 2px solid #00ffcc;
             display: flex;
@@ -380,10 +384,11 @@
             color: #00ffcc;
             border-radius: 4px;
             outline: none;
+            font-size: 16px; /* Zabračuje nežiaducemu zoomu na mobiloch */
         }
 
         .input-area button {
-            padding: 0 25px;
+            padding: 0 20px;
             background: #00ffcc;
             color: #0d0211;
             border: none;
@@ -398,6 +403,7 @@
             gap: 6px;
             overflow-x: auto;
             padding-bottom: 2px;
+            -webkit-overflow-scrolling: touch;
         }
 
         .emoji-btn {
@@ -405,9 +411,10 @@
             border: 1px solid #ff007f;
             color: #fff;
             border-radius: 4px;
-            padding: 3px 7px;
+            padding: 4px 8px;
             cursor: pointer;
             font-size: 1rem;
+            flex-shrink: 0;
             transition: 0.2s;
         }
 
@@ -427,6 +434,32 @@
             box-shadow: 0 0 6px #ff0000;
         }
 
+        /* --- MOBILNÉ PREPÍNAČE (TLAČIDLÁ HORE) --- */
+        .mobile-nav-bar {
+            display: none; /* Na PC skryté */
+            background: #0d0211;
+            border-bottom: 2px solid #00ffcc;
+            padding: 8px;
+            justify-content: space-around;
+            flex-shrink: 0;
+        }
+
+        .mobile-nav-btn {
+            background: #1a0826;
+            border: 1px solid #ff007f;
+            color: #ff007f;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .mobile-nav-btn.active {
+            background: #ff007f;
+            color: #fff;
+        }
+
         /* --- MODÁLNE OKNÁ --- */
         .modal-overlay {
             display: none;
@@ -439,6 +472,7 @@
             background: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
+            padding: 15px;
         }
 
         .profile-card-modal {
@@ -447,7 +481,8 @@
             box-shadow: 0 0 20px #00ffcc;
             border-radius: 8px;
             padding: 20px;
-            width: 320px;
+            width: 100%;
+            max-width: 320px;
             color: #00ffcc;
             text-align: center;
         }
@@ -467,8 +502,9 @@
             border: 2px solid #b800ff;
             box-shadow: 0 0 25px #b800ff;
             border-radius: 8px;
-            width: 420px;
-            height: 520px;
+            width: 100%;
+            max-width: 420px;
+            height: 85vh;
             display: flex;
             flex-direction: column;
             color: #fff;
@@ -548,6 +584,7 @@
             color: #00ffcc;
             border-radius: 4px;
             outline: none;
+            font-size: 16px;
         }
 
         .rp-input-area button {
@@ -643,6 +680,52 @@
         .pokec-card-btn:hover {
             background: #0066cc;
         }
+
+        /* --- MOBILNÉ RESPONSÍVNE PRAVIDLÁ (< 900px) --- */
+        @media screen and (max-width: 900px) {
+            .mobile-nav-bar {
+                display: flex;
+            }
+
+            .chat-layout {
+                flex-direction: column;
+            }
+
+            /* Predvolene na mobile zobrazíme iba stredný stĺpec (chat) */
+            .sidebar-left, .sidebar-right {
+                display: none;
+                width: 100%;
+                flex: 1;
+            }
+
+            .main-chat {
+                display: flex;
+                flex: 1;
+                width: 100%;
+            }
+
+            /* Prepínanie záložiek cez mobilnú lištu */
+            .chat-layout.show-rooms .sidebar-left {
+                display: flex;
+            }
+            .chat-layout.show-rooms .main-chat,
+            .chat-layout.show-rooms .sidebar-right {
+                display: none;
+            }
+
+            .chat-layout.show-users .sidebar-right {
+                display: flex;
+                max-height: none;
+            }
+            .chat-layout.show-users .main-chat,
+            .chat-layout.show-users .sidebar-left {
+                display: none;
+            }
+
+            .sidebar-right-banner {
+                display: none; /* Kvôli úspore miesta na mobile banner skryjeme */
+            }
+        }
     </style>
 </head>
 <body>
@@ -688,7 +771,14 @@
 
     <!-- CHATOVACIE ROZHRANIE - POKEC LAYOUT (3 STĹPCE) -->
     <div id="chat-interface">
-        <div class="chat-layout">
+        <!-- Mobilná prepínacia lišta -->
+        <div class="mobile-nav-bar">
+            <button class="mobile-nav-btn" id="m-btn-rooms" onclick="prepnulMobilnyPohlad('rooms')">🚪 Miestnosti</button>
+            <button class="mobile-nav-btn active" id="m-btn-chat" onclick="prepnulMobilnyPohlad('chat')">💬 Chat</button>
+            <button class="mobile-nav-btn" id="m-btn-users" onclick="prepnulMobilnyPohlad('users')">👥 Ľudia</button>
+        </div>
+
+        <div class="chat-layout" id="chat-layout-container">
             
             <!-- 1. ĽAVÝ STĹPEC: Miestnosti -->
             <div class="sidebar-left">
@@ -725,7 +815,7 @@
                         <button class="emoji-btn" onclick="pridajSmajlika('😜')">😜</button>
                     </div>
                     <div class="input-row">
-                        <input type="text" id="sprava-input" placeholder="Napíš správu do globálu..." onkeypress="skontrolovatEnter(event)">
+                        <input type="text" id="sprava-input" placeholder="Napíš správu..." onkeypress="skontrolovatEnter(event)">
                         <button onclick="poslatSpravu()">Odoslať</button>
                     </div>
                 </div>
@@ -764,7 +854,7 @@
 
     <!-- Modal pre zvätšenie fotky -->
     <div id="image-modal" class="modal-overlay" onclick="zatvoritFotku()" style="z-index:999; cursor:pointer;">
-        <img id="modal-img" style="max-width:80%; max-height:80%; border:2px solid #00ffcc; box-shadow:0 0 20px #00ffcc; border-radius:8px; object-fit:contain;">
+        <img id="modal-img" style="max-width:90%; max-height:90%; border:2px solid #00ffcc; box-shadow:0 0 20px #00ffcc; border-radius:8px; object-fit:contain;">
     </div>
 
     <!-- Modal pre Profilovú Kartu -->
@@ -849,6 +939,26 @@
                 .replace(/'/g, "&#039;");
         }
 
+        /* --- MOBILNÉ PREPÍNANIE POHĽADOV --- */
+        function prepnulMobilnyPohlad(pohlad) {
+            const container = document.getElementById('chat-layout-container');
+            container.classList.remove('show-rooms', 'show-users');
+            
+            document.getElementById('m-btn-rooms').classList.remove('active');
+            document.getElementById('m-btn-chat').classList.remove('active');
+            document.getElementById('m-btn-users').classList.remove('active');
+
+            if (pohlad === 'rooms') {
+                container.classList.add('show-rooms');
+                document.getElementById('m-btn-rooms').classList.add('active');
+            } else if (pohlad === 'users') {
+                container.classList.add('show-users');
+                document.getElementById('m-btn-users').classList.add('active');
+            } else {
+                document.getElementById('m-btn-chat').classList.add('active');
+            }
+        }
+
         /* --- PREPÍNANIE MIESTNOSTÍ --- */
         function zmenMiestnost(roomKey, roomName, element) {
             document.querySelectorAll('#rooms-list li').forEach(li => li.classList.remove('active'));
@@ -858,6 +968,11 @@
             document.getElementById('sprava-input').placeholder = `Napíš správu do miestnosti ${roomName}...`;
 
             socket.emit('switch room', roomKey);
+
+            // Na mobile po výbere miestnosti automaticky prepni späť na chat
+            if (window.innerWidth <= 900) {
+                prepnulMobilnyPohlad('chat');
+            }
         }
 
         /* --- RP POP-UP OKNO LOGIKA --- */
@@ -1212,7 +1327,7 @@
             const avatarHtml = msg.avatar ? `<img src="${escapeHtml(msg.avatar)}" class="msg-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeUser}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${escapeHtml(msg.avatar)}')">` : '';
             const adminTag = msg.role === 'admin' ? '<span class="admin-badge">[ADMIN]</span>' : '';
 
-            let autorText = `<span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeUser}')" onmouseleave="skrytcKarta()">${safeUser}</span>${adminTag}`;
+            let autorText = `<span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeUser}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${safeUser}')">${safeUser}</span>${adminTag}`;
 
             msgEl.innerHTML = `<div class="author"><span>${avatarHtml}${autorText}</span>${casHtml}</div><div>${safeText}</div>`;
             
