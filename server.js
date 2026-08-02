@@ -202,18 +202,6 @@ io.on('connection', (socket) => {
         broadcastActiveUsers(defaultRoom);
 
         socket.emit('chat history', messageHistory[defaultRoom]);
-
-        socket.emit('chat message', { 
-            user: 'System', 
-            text: `Welcome to Globtel Chat, ${socket.username}!`,
-            time: getFormattedTime()
-        });
-
-        socket.emit('chat message', { 
-            user: 'Support', 
-            text: `Do you like our chat? Support its operation and development with a voluntary contribution at: buymeacoffee.com/globtelchat ☕❤️`,
-            time: getFormattedTime()
-        });
     });
 
     // SWITCH ROOMS
@@ -403,3 +391,4 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Globtel Chat is running on port ${PORT} 🚀`);
 });
+```[cite: 8]
