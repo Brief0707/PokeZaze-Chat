@@ -814,10 +814,12 @@
             <div class="sidebar-left">
                 <h3>Miestnosti</h3>
                 <ul class="list-items" id="rooms-list">
-                    <li class="active" onclick="zmenMiestnost('global', 'Globálna', this)">🌐 Globálna</li>
-                    <li onclick="zmenMiestnost('zoznamka', 'Zoznamka', this)">💖 Zoznamka</li>
+                    <li class="active" onclick="zmenMiestnost('zoznamka', 'Zoznamka', this)">💖 Zoznamka</li>
                     <li onclick="zmenMiestnost('pohody', 'Do pohody', this)">😎 Do pohody</li>
                     <li onclick="zmenMiestnost('caffe', 'Caffe', this)">☕ Caffe</li>
+                    <li onclick="zmenMiestnost('sport', 'Šport', this)">⚽ Šport</li>
+                    <li onclick="zmenMiestnost('hudba', 'Hudba', this)">🎵 Hudba</li>
+                    <li onclick="zmenMiestnost('zahranicie', 'Zahranicie', this)">🌍 Zahranicie</li>
                 </ul>
 
                 <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="nahratFotku(event)">
@@ -829,7 +831,7 @@
             
             <div class="main-chat">
                 <div class="chat-header">
-                    <span id="kanal-nazov">Kanál: Globálna</span>
+                    <span id="kanal-nazov">Kanál: Zoznamka</span>
                 </div>
                 <div id="spravy-box" class="messages-container"></div>
                 <div class="input-area">
@@ -844,7 +846,7 @@
                         <button class="emoji-btn" onclick="pridajSmajlika('😜')">😜</button>
                     </div>
                     <div class="input-row">
-                        <input type="text" id="sprava-input" placeholder="Napíš správu do miestnosti Globálna..." onkeypress="skontrolovatEnter(event)">
+                        <input type="text" id="sprava-input" placeholder="Napíš správu do miestnosti Zoznamka..." onkeypress="skontrolovatEnter(event)">
                         <button onclick="poslatSpravu()">Odoslať</button>
                     </div>
                 </div>
@@ -856,9 +858,13 @@
                     <ul id="pouzivatelia-list" class="list-items"></ul>
                 </div>
                 <div class="sidebar-right-banner">
+                    <span style="font-size: 1.5rem;">⚡</span>
+                    <strong style="font-size: 0.85rem; color: var(--accent-primary); margin-top: 5px;">Globtel Workspace</strong>
+                    <p>Bezpečné a moderné šifrované prostredie.</p>
+                    <hr style="width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 12px 0;">
                     <span style="font-size: 1.3rem;">☕</span>
                     <strong style="font-size: 0.8rem; color: var(--accent-primary); margin-top: 3px;">Podpora chatu</strong>
-                    <p>Páči sa ti náš chat? Podpor jeho prevádzku a vývoj dobrovoľným príspevkom na: <a href="https://buymeacoffee.com/globtelchat" target="_blank" style="color: var(--accent-primary);">buymeacoffee.com/globtelchat</a> ☕❤️</p>
+                    <p>Páči sa ti náš chat? Podpor jeho prevádzku na: <a href="https://buymeacoffee.com/globtelchat" target="_blank" style="color: var(--accent-primary);">buymeacoffee.com/globtelchat</a> ☕❤️</p>
                 </div>
             </div>
 
@@ -950,7 +956,7 @@
         let mojeMeno = "";
         let mojeRola = "user";
         let aktivnyRPUser = null; 
-        let aktualnaMiestnost = "global";
+        let aktualnaMiestnost = "zoznamka";
         const rpHistories = {}; 
 
         let hoverTimeout = null;
@@ -1308,13 +1314,14 @@
             }
         }
 
+        // OPRAVENÁ FUNKCIA NA ODOSIELANIE SPRÁV DO MIESTNOSTI
         function poslatSpravu() {
             const input = document.getElementById('sprava-input');
             const text = input.value.trim();
             if (text !== "") {
                 socket.emit('chat message', {
                     text: text,
-                    recipient: null 
+                    recipient: null // Nastavené na null, aby server vedel, že ide o verejnú správu v miestnosti
                 });
                 input.value = "";
             }
