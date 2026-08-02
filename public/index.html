@@ -411,7 +411,7 @@
             color: var(--text-main);
             border-radius: 8px;
             outline: none;
-            font-size: 0.95ln;
+            font-size: 0.95rem;
             transition: border-color 0.2s;
         }
 
@@ -814,7 +814,10 @@
             <div class="sidebar-left">
                 <h3>Miestnosti</h3>
                 <ul class="list-items" id="rooms-list">
-                    <li class="active" onclick="zmenMiestnost('global', 'Globálny Chat', this)">🌐 Globálny Chat</li>
+                    <li class="active" onclick="zmenMiestnost('zahranicie', 'Zahranicie', this)">🌍 Zahranicie</li>
+                    <li onclick="zmenMiestnost('technologie', 'Technológie', this)">💻 Technológie</li>
+                    <li onclick="zmenMiestnost('hudba', 'Hudba', this)">🎵 Hudba</li>
+                    <li onclick="zmenMiestnost('sport', 'Šport', this)">⚽ Šport</li>
                     <li onclick="zmenMiestnost('zoznamka', 'Zoznamka', this)">💖 Zoznamka</li>
                     <li onclick="zmenMiestnost('pohody', 'Do pohody', this)">😎 Do pohody</li>
                     <li onclick="zmenMiestnost('caffe', 'Caffe', this)">☕ Caffe</li>
@@ -829,7 +832,7 @@
             
             <div class="main-chat">
                 <div class="chat-header">
-                    <span id="kanal-nazov">Kanál: Globálny Chat</span>
+                    <span id="kanal-nazov">Kanál: Zahranicie</span>
                 </div>
                 <div id="spravy-box" class="messages-container"></div>
                 <div class="input-area">
@@ -844,7 +847,7 @@
                         <button class="emoji-btn" onclick="pridajSmajlika('😜')">😜</button>
                     </div>
                     <div class="input-row">
-                        <input type="text" id="sprava-input" placeholder="Napíš správu..." onkeypress="skontrolovatEnter(event)">
+                        <input type="text" id="sprava-input" placeholder="Napíš správu do miestnosti Zahranicie..." onkeypress="skontrolovatEnter(event)">
                         <button onclick="poslatSpravu()">Odoslať</button>
                     </div>
                 </div>
@@ -1312,7 +1315,7 @@
             if (text !== "") {
                 socket.emit('chat message', {
                     text: text,
-                    recipient: "global"
+                    recipient: "zahranicie"
                 });
                 input.value = "";
             }
