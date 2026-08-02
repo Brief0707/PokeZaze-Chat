@@ -952,6 +952,7 @@
         let mojeMeno = "";
         let mojeRola = "user";
         let aktivnyRPUser = null; 
+        let aktualnaMiestnost = "zoznamka"; // Sleduje aktuálne aktívnu miestnosť
         const rpHistories = {}; 
 
         let hoverTimeout = null;
@@ -994,6 +995,7 @@
             document.querySelectorAll('#rooms-list li').forEach(li => li.classList.remove('active'));
             element.classList.add('active');
 
+            aktualnaMiestnost = roomKey; // Uloženie aktuálnej miestnosti
             document.getElementById('kanal-nazov').innerText = `Kanál: ${roomName}`;
             document.getElementById('sprava-input').placeholder = `Napíš správu do miestnosti ${roomName}...`;
 
@@ -1314,7 +1316,7 @@
             if (text !== "") {
                 socket.emit('chat message', {
                     text: text,
-                    recipient: "zoznamka"
+                    recipient: aktualnaMiestnost // Odosiela sa do správnej aktívnej miestnosti
                 });
                 input.value = "";
             }
@@ -1388,7 +1390,8 @@
                     avatarElement = `<img src="${escapeHtml(u.avatar)}" class="user-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${escapeHtml(u.avatar)}')">`;
                 }
 
-                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziK_karta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${safeName}')">${ikona} ${safeName}${adminTag}</span>`.replace("ukaziK_karta", "ukaziKarta");
+                // Opravený preklep z "ukaziK_karta" na správnu funkciu "ukaziKarta"
+                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${safeName}')">${ikona} ${safeName}${adminTag}</span>`;
                 
                 li.onclick = () => otvoritRPOkno(u.username);
                 uList.appendChild(li);
