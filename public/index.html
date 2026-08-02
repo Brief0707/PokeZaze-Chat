@@ -814,13 +814,12 @@
             <div class="sidebar-left">
                 <h3>Miestnosti</h3>
                 <ul class="list-items" id="rooms-list">
-                    <li class="active" onclick="zmenMiestnost('zahranicie', 'Zahranicie', this)">🌍 Zahranicie</li>
-                    <li onclick="zmenMiestnost('technologie', 'Technológie', this)">💻 Technológie</li>
-                    <li onclick="zmenMiestnost('hudba', 'Hudba', this)">🎵 Hudba</li>
-                    <li onclick="zmenMiestnost('sport', 'Šport', this)">⚽ Šport</li>
-                    <li onclick="zmenMiestnost('zoznamka', 'Zoznamka', this)">💖 Zoznamka</li>
+                    <li class="active" onclick="zmenMiestnost('zoznamka', 'Zoznamka', this)">💖 Zoznamka</li>
                     <li onclick="zmenMiestnost('pohody', 'Do pohody', this)">😎 Do pohody</li>
                     <li onclick="zmenMiestnost('caffe', 'Caffe', this)">☕ Caffe</li>
+                    <li onclick="zmenMiestnost('sport', 'Šport', this)">⚽ Šport</li>
+                    <li onclick="zmenMiestnost('hudba', 'Hudba', this)">🎵 Hudba</li>
+                    <li onclick="zmenMiestnost('zahranicie', 'Zahranicie', this)">🌍 Zahranicie</li>
                 </ul>
 
                 <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="nahratFotku(event)">
@@ -832,7 +831,7 @@
             
             <div class="main-chat">
                 <div class="chat-header">
-                    <span id="kanal-nazov">Kanál: Zahranicie</span>
+                    <span id="kanal-nazov">Kanál: Zoznamka</span>
                 </div>
                 <div id="spravy-box" class="messages-container"></div>
                 <div class="input-area">
@@ -847,7 +846,7 @@
                         <button class="emoji-btn" onclick="pridajSmajlika('😜')">😜</button>
                     </div>
                     <div class="input-row">
-                        <input type="text" id="sprava-input" placeholder="Napíš správu do miestnosti Zahranicie..." onkeypress="skontrolovatEnter(event)">
+                        <input type="text" id="sprava-input" placeholder="Napíš správu do miestnosti Zoznamka..." onkeypress="skontrolovatEnter(event)">
                         <button onclick="poslatSpravu()">Odoslať</button>
                     </div>
                 </div>
@@ -1315,7 +1314,7 @@
             if (text !== "") {
                 socket.emit('chat message', {
                     text: text,
-                    recipient: "zahranicie"
+                    recipient: "zoznamka"
                 });
                 input.value = "";
             }
@@ -1389,7 +1388,7 @@
                     avatarElement = `<img src="${escapeHtml(u.avatar)}" class="user-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${escapeHtml(u.avatar)}')">`;
                 }
 
-                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${safeName}')">${ikona} ${safeName}${adminTag}</span>`;
+                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziK_karta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${safeName}')">${ikona} ${safeName}${adminTag}</span>`.replace("ukaziK_karta", "ukaziKarta");
                 
                 li.onclick = () => otvoritRPOkno(u.username);
                 uList.appendChild(li);
