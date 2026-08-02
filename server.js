@@ -12,15 +12,15 @@ const io = new Server(server);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// --- PRIIPOJENIE K MONGODB ATLAS ---
+// --- MONGODB ATLAS CONNECTION ---
 const mongoURI = process.env.MONGO_URI;
 
 if (mongoURI) {
     mongoose.connect(mongoURI)
-        .then(() => console.log('✅ Úspešne pripojené k MongoDB Atlas!'))
-        .catch(err => console.error('❌ Chyba pripojenia k MongoDB:', err));
+        .then(() => console.log('✅ Successfully connected to MongoDB Atlas!'))
+        .catch(err => console.error('❌ MongoDB connection error:', err));
 } else {
-    console.warn('⚠️ Varovanie: MONGO_URI premenná nebola nájdená!');
+    console.warn('⚠️ Warning: MONGO_URI environment variable not found!');
 }
 
 const userSchema = new mongoose.Schema({
@@ -33,24 +33,26 @@ const userSchema = new mongoose.Schema({
         gender: { type: String, default: 'male' },
         age: { type: String, default: '' },
         city: { type: String, default: '' },
-        about: { type: String, default: 'Ahoj!' },
+        about: { type: String, default: 'Hello!' },
         avatar: { type: String, default: '' }
     }
 });
 
 const User = mongoose.model('User', userSchema);
 
-// História správ pre jednotlivé miestnosti
-const historiaSprav = {
-    global: [],
-    zoznamka: [],
-    pohody: [],
-    caffe: []
+// Message history for each room
+const messageHistory = {
+    dating: [],
+    chill: [],
+    caffe: [],
+    sports: [],
+    music: [],
+    foreign: []
 };
 
 const activeUsers = {};
 
-// Pomocná funkcija na rozoslanie zoznamu online ľudí podľa miestností
+// Helper function to broadcast active users list per room
 function broadcastActiveUsers(room) {
     if (room) {
         const activeList = Object.values(activeUsers)
@@ -63,24 +65,24 @@ function broadcastActiveUsers(room) {
             }));
         io.to(room).emit('update userlist', activeList);
     } else {
-        const miestnosti = ['global', 'zoznamka', 'pohody', 'caffe'];
-        miestnosti.forEach(r => broadcastActiveUsers(r));
+        const rooms = ['dating', 'chill', 'caffe', 'sports', 'music', 'foreign'];
+        rooms.forEach(r => broadcastActiveUsers(r));
     }
 }
 
-// --- REGISTRÁCIA ---
+// --- REGISTRATION ---
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password, gender } = req.body;
         if (!username || !password) {
-            return res.json({ success: false, message: "Vyplň všetky polia" });
+            return res.json({ success: false, message: "Please fill in all fields" });
         }
 
         const lower = username.toLowerCase();
         const existingUser = await User.findOne({ usernameLower: lower });
         
         if (existingUser) {
-            return res.json({ success: false, message: "Meno je už obsadené!" });
+            return res.json({ success: false, message: "Username is already taken!" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -92,34 +94,34 @@ app.post('/api/register', async (req, res) => {
             password: hashedPassword,
             role: isAdmin ? 'admin' : 'user',
             isBanned: false,
-            profile: { gender: gender || 'male', age: '', city: '', about: 'Ahoj!', avatar: '' }
+            profile: { gender: gender || 'male', age: '', city: '', about: 'Hello!', avatar: '' }
         });
 
         await newUser.save();
         res.json({ success: true });
     } catch (err) {
-        console.error("Chyba registrácie:", err);
-        res.json({ success: false, message: "Chyba na serveri" });
+        console.error("Registration error:", err);
+        res.json({ success: false, message: "Server error" });
     }
 });
 
-// --- PRIHLÁSENIE ---
+// --- LOGIN ---
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) {
-            return res.json({ success: false, message: "Nesprávne prihlasovacie údaje" });
+            return res.json({ success: false, message: "Invalid credentials" });
         }
 
         const lower = username.toLowerCase();
         const user = await User.findOne({ usernameLower: lower });
 
         if (!user || !(await bcrypt.compare(password, user.password))) {
-            return res.json({ success: false, message: "Nesprávne meno alebo heslo" });
+            return res.json({ success: false, message: "Incorrect username or password" });
         }
 
         if (user.isBanned) {
-            return res.json({ success: false, message: "Tvoj účet bol zablokovaný (BAN)!" });
+            return res.json({ success: false, message: "Your account has been banned!" });
         }
 
         if (lower === 'admin' && user.role !== 'admin') {
@@ -129,18 +131,18 @@ app.post('/api/login', async (req, res) => {
 
         res.json({ success: true, username: user.username, role: user.role, profile: user.profile });
     } catch (err) {
-        console.error("Chyba prihlásenia:", err);
-        res.json({ success: false, message: "Chyba na serveri" });
+        console.error("Login error:", err);
+        res.json({ success: false, message: "Server error" });
     }
 });
 
-// --- ÚPRAVA PROFILU ---
+// --- PROFILE UPDATE ---
 app.post('/api/profile/update', async (req, res) => {
     try {
         const { username, age, city, about, gender } = req.body;
         const userKey = username?.toLowerCase();
 
-        if (!userKey) return res.json({ success: false, message: "Používateľ nenájdený" });
+        if (!userKey) return res.json({ success: false, message: "User not found" });
 
         const user = await User.findOne({ usernameLower: userKey });
 
@@ -163,10 +165,10 @@ app.post('/api/profile/update', async (req, res) => {
             broadcastActiveUsers();
             return res.json({ success: true, profile: user.profile });
         }
-        res.json({ success: false, message: "Používateľ nenájdený" });
+        res.json({ success: false, message: "User not found" });
     } catch (err) {
-        console.error("Chyba pri úprave profilu:", err);
-        res.json({ success: false, message: "Chyba na serveri" });
+        console.error("Profile update error:", err);
+        res.json({ success: false, message: "Server error" });
     }
 });
 
@@ -184,7 +186,7 @@ io.on('connection', (socket) => {
 
         socket.username = dbUser ? dbUser.username : username;
         socket.role = dbUser?.role || 'user';
-        let defaultRoom = 'global';
+        let defaultRoom = 'dating';
 
         socket.join(defaultRoom);
 
@@ -199,26 +201,27 @@ io.on('connection', (socket) => {
 
         broadcastActiveUsers(defaultRoom);
 
-        socket.emit('chat history', historiaSprav[defaultRoom]);
+        socket.emit('chat history', messageHistory[defaultRoom]);
 
         socket.emit('chat message', { 
-            user: 'Systém', 
-            text: `Vitaj v Globtel Chate, ${socket.username}!`,
+            user: 'System', 
+            text: `Welcome to Globtel Chat, ${socket.username}!`,
             time: getFormattedTime()
         });
 
         socket.emit('chat message', { 
-            user: 'Podpora', 
-            text: `Páči sa ti náš chat? Podpor jeho prevádzku a vývoj dobrovoľným príspevkom na: buymeacoffee.com/globtelchat ☕❤️`,
+            user: 'Support', 
+            text: `Do you like our chat? Support its operation and development with a voluntary contribution at: buymeacoffee.com/globtelchat ☕❤️`,
             time: getFormattedTime()
         });
     });
 
-    // PREPÍNANIE MIESTNOSTÍ
+    // SWITCH ROOMS
     socket.on('switch room', (newRoom) => {
-        if (!socket.username || !['global', 'zoznamka', 'pohody', 'caffe'].includes(newRoom)) return;
+        const allowedRooms = ['dating', 'chill', 'caffe', 'sports', 'music', 'foreign'];
+        if (!socket.username || !allowedRooms.includes(newRoom)) return;
 
-        const oldRoom = activeUsers[socket.id]?.room || 'global';
+        const oldRoom = activeUsers[socket.id]?.room || 'dating';
         socket.leave(oldRoom);
         socket.join(newRoom);
 
@@ -229,10 +232,10 @@ io.on('connection', (socket) => {
         broadcastActiveUsers(oldRoom);
         broadcastActiveUsers(newRoom);
 
-        socket.emit('chat history', historiaSprav[newRoom] || []);
+        socket.emit('chat history', messageHistory[newRoom] || []);
     });
 
-    // ADMIN PRÍKAZY
+    // ADMIN COMMANDS
     socket.on('admin kick user', async (targetUsername) => {
         if (socket.role !== 'admin') return;
 
@@ -252,8 +255,8 @@ io.on('connection', (socket) => {
             if (userRoom) broadcastActiveUsers(userRoom);
 
             io.emit('chat message', {
-                user: 'Systém',
-                text: `Používateľ ${targetUsername} bol vyhodený z chatu.`,
+                user: 'System',
+                text: `User ${targetUsername} has been kicked from the chat.`,
                 time: getFormattedTime()
             });
         }
@@ -281,8 +284,8 @@ io.on('connection', (socket) => {
         }
 
         io.emit('chat message', {
-            user: 'Systém',
-            text: `Používateľ ${targetUsername} bol zablokovaný (BAN).`,
+            user: 'System',
+            text: `User ${targetUsername} has been banned.`,
             time: getFormattedTime()
         });
     });
@@ -319,7 +322,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // SPRÁVY (Verejné v miestnosti / Súkromné)
+    // MESSAGES (Public in room / Private DM)
     socket.on('chat message', async (msgData) => {
         if (!socket.username) return;
 
@@ -328,7 +331,7 @@ io.on('connection', (socket) => {
 
         const userAvatar = user?.profile?.avatar || '';
         const userRole = user?.role || 'user';
-        const cas = getFormattedTime();
+        const timeStr = getFormattedTime();
 
         let text = typeof msgData === 'object' ? msgData.text : msgData;
         let recipient = typeof msgData === 'object' ? msgData.recipient : null;
@@ -336,7 +339,7 @@ io.on('connection', (socket) => {
         if (!text || text.trim() === '') return;
         text = text.trim();
 
-        // SÚKROMNÁ SPRÁVA (RP)
+        // PRIVATE MESSAGE (DM)
         if (recipient && recipient !== 'global') {
             const recipientSocketId = Object.keys(activeUsers).find(
                 id => activeUsers[id].username.toLowerCase() === recipient.toLowerCase()
@@ -347,7 +350,7 @@ io.on('connection', (socket) => {
                 role: userRole,
                 avatar: userAvatar,
                 text: text,
-                time: cas,
+                time: timeStr,
                 isPrivate: true,
                 target: recipient
             };
@@ -357,29 +360,29 @@ io.on('connection', (socket) => {
                 socket.emit('chat message', privateMsg);
             } else {
                 socket.emit('chat message', {
-                    user: 'Systém',
-                    text: `Používateľ ${recipient} už nie je online.`,
-                    time: cas
+                    user: 'System',
+                    text: `User ${recipient} is no longer online.`,
+                    time: timeStr
                 });
             }
         } 
-        // VEREJNÁ SPRÁVA V DANEJ MIESTNOSTI
+        // PUBLIC MESSAGE IN ROOM
         else {
-            const currentRoom = activeUsers[socket.id]?.room || 'global';
-            const spravaObjekt = { 
+            const currentRoom = activeUsers[socket.id]?.room || 'dating';
+            const messageObject = { 
                 user: socket.username, 
                 role: userRole,
                 avatar: userAvatar,
                 text: text,
-                time: cas,
+                time: timeStr,
                 isPrivate: false
             };
 
-            if (!historiaSprav[currentRoom]) historiaSprav[currentRoom] = [];
-            historiaSprav[currentRoom].push(spravaObjekt);
-            if (historiaSprav[currentRoom].length > 50) historiaSprav[currentRoom].shift();
+            if (!messageHistory[currentRoom]) messageHistory[currentRoom] = [];
+            messageHistory[currentRoom].push(messageObject);
+            if (messageHistory[currentRoom].length > 50) messageHistory[currentRoom].shift();
 
-            io.to(currentRoom).emit('chat message', spravaObjekt);
+            io.to(currentRoom).emit('chat message', messageObject);
         }
     });
 
@@ -393,10 +396,10 @@ io.on('connection', (socket) => {
 });
 
 function getFormattedTime() {
-    return new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+    return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Globtel Chat beží na porte ${PORT} 🚀`);
+    console.log(`Globtel Chat is running on port ${PORT} 🚀`);
 });

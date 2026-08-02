@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,7 +37,7 @@
             overflow-x: hidden;
         }
 
-        /* --- PRIHLASOVACIA OBRAZOVKA --- */
+        /* --- AUTH SCREEN --- */
         #auth-interface {
             display: flex;
             flex-direction: column;
@@ -189,7 +189,7 @@
             text-decoration: underline;
         }
 
-        /* --- CHATOVACIE ROZHRANIE (MODERNÉ 3-STĹPCE) --- */
+        /* --- CHAT INTERFACE (3-COLUMN MODERN LAYOUT) --- */
         #chat-interface {
             display: none;
             width: 100vw;
@@ -203,7 +203,7 @@
             width: 100%;
         }
 
-        /* 1. ĽAVÝ STĹPEC (Miestnosti) */
+        /* 1. LEFT COLUMN (Rooms) */
         .sidebar-left {
             width: 260px;
             background: var(--bg-card);
@@ -224,7 +224,7 @@
             margin-bottom: 5px;
         }
 
-        /* 2. STREDNÝ STĹPEC (Hlavný chat) */
+        /* 2. MIDDLE COLUMN (Main Chat) */
         .main-chat {
             flex: 1;
             display: flex;
@@ -254,7 +254,7 @@
             gap: 16px;
         }
 
-        /* 3. PRAVÝ STĹPEC (Ľudia v miestnosti + Reklama) */
+        /* 3. RIGHT COLUMN (Online Users + Ads) */
         .sidebar-right {
             width: 280px;
             background: var(--bg-card);
@@ -469,7 +469,7 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
-        /* --- MOBILNÉ PREPÍNAČE --- */
+        /* --- MOBILE NAV TOGGLES --- */
         .mobile-nav-bar {
             display: none;
             background: var(--bg-card);
@@ -496,7 +496,7 @@
             border-color: rgba(56, 189, 248, 0.3);
         }
 
-        /* --- MODÁLNE OKNÁ --- */
+        /* --- MODALS --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -533,7 +533,7 @@
             margin-bottom: 15px;
         }
 
-        /* --- RP POP-UP OKNO --- */
+        /* --- RP POP-UP WINDOW --- */
         .rp-box {
             background: var(--bg-card);
             border: 1px solid rgba(168, 85, 247, 0.4);
@@ -638,7 +638,7 @@
             background: #9333ea;
         }
 
-        /* --- HOVER MINIKARTA --- */
+        /* --- HOVER MINI CARD --- */
         #pokec-hover-card {
             position: fixed;
             z-index: 10000;
@@ -715,7 +715,7 @@
             background: var(--accent-hover);
         }
 
-        /* --- MOBILNÉ RESPONSÍVNE PRAVIDLÁ (< 900px) --- */
+        /* --- MOBILE RESPONSIVE RULES (< 900px) --- */
         @media screen and (max-width: 900px) {
             .mobile-nav-bar {
                 display: flex;
@@ -766,133 +766,133 @@
         <div class="logo-globtel">Globtel Chat ⚡</div>
         
         <div id="login-card" class="auth-container">
-            <h2>Prihlásenie</h2>
+            <h2>Login</h2>
             <div class="form-group">
-                <label>Používateľské meno</label>
-                <input type="text" id="login-username" placeholder="Zadaj meno">
+                <label>Username</label>
+                <input type="text" id="login-username" placeholder="Enter username">
             </div>
             <div class="form-group">
-                <label>Heslo</label>
-                <input type="password" id="login-password" placeholder="Zadaj heslo">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="Enter password">
             </div>
-            <button class="btn" onclick="spustitPrihlasenie()">Vstúpiť</button>
-            <p>Nemáš účet? <a href="#" onclick="preopnutFormulare('register')">Zaregistruj sa</a></p>
+            <button class="btn" onclick="startLogin()">Sign In</button>
+            <p>Don't have an account? <a href="#" onclick="switchForms('register')">Register</a></p>
         </div>
 
         <div id="register-card" class="auth-container" style="display: none;">
-            <h2>Registrácia</h2>
+            <h2>Registration</h2>
             <div class="form-group">
-                <label>Používateľské meno</label>
-                <input type="text" id="register-username" placeholder="Min. 3 znaky">
+                <label>Username</label>
+                <input type="text" id="register-username" placeholder="Min. 3 characters">
             </div>
             <div class="form-group">
-                <label>Heslo</label>
-                <input type="password" id="register-password" placeholder="Vytvor si heslo">
+                <label>Password</label>
+                <input type="password" id="register-password" placeholder="Create a password">
             </div>
             <div class="form-group">
-                <label>Pohlavie</label>
+                <label>Gender</label>
                 <select id="register-gender">
-                    <option value="male">Muž ♂</option>
-                    <option value="female">Žena ♀</option>
+                    <option value="male">Male ♂</option>
+                    <option value="female">Female ♀</option>
                 </select>
             </div>
-            <button class="btn" onclick="spustitRegistraciu()">Vytvoriť účet</button>
-            <p>Už máš účet? <a href="#" onclick="preopnutFormulare('login')">Prihlás sa</a></p>
+            <button class="btn" onclick="startRegistration()">Create Account</button>
+            <p>Already have an account? <a href="#" onclick="switchForms('login')">Sign In</a></p>
         </div>
     </div>
 
-    <!-- CHATOVACIE ROZHRANIE -->
+    <!-- CHAT INTERFACE -->
     <div id="chat-interface">
         <div class="mobile-nav-bar">
-            <button class="mobile-nav-btn" id="m-btn-rooms" onclick="prepnulMobilnyPohlad('rooms')">🚪 Miestnosti</button>
-            <button class="mobile-nav-btn active" id="m-btn-chat" onclick="prepnulMobilnyPohlad('chat')">💬 Chat</button>
-            <button class="mobile-nav-btn" id="m-btn-users" onclick="prepnulMobilnyPohlad('users')">👥 Ľudia</button>
+            <button class="mobile-nav-btn" id="m-btn-rooms" onclick="switchMobileView('rooms')">🚪 Rooms</button>
+            <button class="mobile-nav-btn active" id="m-btn-chat" onclick="switchMobileView('chat')">💬 Chat</button>
+            <button class="mobile-nav-btn" id="m-btn-users" onclick="switchMobileView('users')">👥 Users</button>
         </div>
 
         <div class="chat-layout" id="chat-layout-container">
             
             <div class="sidebar-left">
-                <h3>Miestnosti</h3>
+                <h3>Rooms</h3>
                 <ul class="list-items" id="rooms-list">
-                    <li class="active" onclick="zmenMiestnost('zoznamka', 'Zoznamka', this)">💖 Zoznamka</li>
-                    <li onclick="zmenMiestnost('pohody', 'Do pohody', this)">😎 Do pohody</li>
-                    <li onclick="zmenMiestnost('caffe', 'Caffe', this)">☕ Caffe</li>
-                    <li onclick="zmenMiestnost('sport', 'Šport', this)">⚽ Šport</li>
-                    <li onclick="zmenMiestnost('hudba', 'Hudba', this)">🎵 Hudba</li>
-                    <li onclick="zmenMiestnost('zahranicie', 'Zahranicie', this)">🌍 Zahranicie</li>
+                    <li class="active" onclick="changeRoom('dating', 'Dating', this)">💖 Dating</li>
+                    <li onclick="changeRoom('chill', 'Chill Out', this)">😎 Chill Out</li>
+                    <li onclick="changeRoom('caffe', 'Caffe', this)">☕ Caffe</li>
+                    <li onclick="changeRoom('sports', 'Sports', this)">⚽ Sports</li>
+                    <li onclick="changeRoom('music', 'Music', this)">🎵 Music</li>
+                    <li onclick="changeRoom('foreign', 'Foreign', this)">🌍 Foreign</li>
                 </ul>
 
-                <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="nahratFotku(event)">
-                <button class="btn btn-avatar" onclick="document.getElementById('avatarFileInput').click()">📷 Zmeniť fotku</button>
-                <button class="btn btn-avatar" onclick="otvoritEditorProfilu()">✏️ Upraviť profil</button>
+                <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="uploadPhoto(event)">
+                <button class="btn btn-avatar" onclick="document.getElementById('avatarFileInput').click()">📷 Change Photo</button>
+                <button class="btn btn-avatar" onclick="openProfileEditor()">✏️ Edit Profile</button>
 
-                <button class="btn btn-logout" onclick="odhlasitSa()">Odhlásiť sa</button>
+                <button class="btn btn-logout" onclick="logoutUser()">Log Out</button>
             </div>
             
             <div class="main-chat">
                 <div class="chat-header">
-                    <span id="kanal-nazov">Kanál: Zoznamka</span>
+                    <span id="channel-name">Channel: Dating</span>
                 </div>
-                <div id="spravy-box" class="messages-container"></div>
+                <div id="messages-box" class="messages-container"></div>
                 <div class="input-area">
                     <div class="emoji-bar">
-                        <button class="emoji-btn" onclick="pridajSmajlika('😊')">😊</button>
-                        <button class="emoji-btn" onclick="pridajSmajlika('😂')">😂</button>
-                        <button class="emoji-btn" onclick="pridajSmajlika('😎')">😎</button>
-                        <button class="emoji-btn" onclick="pridajSmajlika('🔥')">🔥</button>
-                        <button class="emoji-btn" onclick="pridajSmajlika('❤️')">❤️</button>
-                        <button class="emoji-btn" onclick="pridajSmajlika('👍')">👍</button>
-                        <button class="emoji-btn" onclick="pridajSmajlika('⚡')">⚡</button>
-                        <button class="emoji-btn" onclick="pridajSmajlika('😜')">😜</button>
+                        <button class="emoji-btn" onclick="addEmoji('😊')">😊</button>
+                        <button class="emoji-btn" onclick="addEmoji('😂')">😂</button>
+                        <button class="emoji-btn" onclick="addEmoji('😎')">😎</button>
+                        <button class="emoji-btn" onclick="addEmoji('🔥')">🔥</button>
+                        <button class="emoji-btn" onclick="addEmoji('❤️')">❤️</button>
+                        <button class="emoji-btn" onclick="addEmoji('👍')">👍</button>
+                        <button class="emoji-btn" onclick="addEmoji('⚡')">⚡</button>
+                        <button class="emoji-btn" onclick="addEmoji('😜')">😜</button>
                     </div>
                     <div class="input-row">
-                        <input type="text" id="sprava-input" placeholder="Napíš správu do miestnosti Zoznamka..." onkeypress="skontrolovatEnter(event)">
-                        <button onclick="poslatSpravu()">Odoslať</button>
+                        <input type="text" id="message-input" placeholder="Type a message to Dating room..." onkeypress="checkEnter(event)">
+                        <button onclick="sendMessage()">Send</button>
                     </div>
                 </div>
             </div>
 
             <div class="sidebar-right">
                 <div class="sidebar-right-top">
-                    <h3>Ľudia v miestnosti</h3>
-                    <ul id="pouzivatelia-list" class="list-items"></ul>
+                    <h3>Users in room</h3>
+                    <ul id="users-list" class="list-items"></ul>
                 </div>
                 <div class="sidebar-right-banner">
                     <span style="font-size: 1.5rem;">⚡</span>
                     <strong style="font-size: 0.85rem; color: var(--accent-primary); margin-top: 5px;">Globtel Workspace</strong>
-                    <p>Bezpečné a moderné šifrované prostredie.</p>
+                    <p>Secure and modern encrypted environment.</p>
                     <hr style="width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 12px 0;">
                     <span style="font-size: 1.3rem;">☕</span>
-                    <strong style="font-size: 0.8rem; color: var(--accent-primary); margin-top: 3px;">Podpora chatu</strong>
-                    <p>Páči sa ti náš chat? Podpor jeho prevádzku na: <a href="https://buymeacoffee.com/globtelchat" target="_blank" style="color: var(--accent-primary);">buymeacoffee.com/globtelchat</a> ☕❤️</p>
+                    <strong style="font-size: 0.8rem; color: var(--accent-primary); margin-top: 3px;">Chat Support</strong>
+                    <p>Do you like our chat? Support its operation at: <a href="https://buymeacoffee.com/globtelchat" target="_blank" style="color: var(--accent-primary);">buymeacoffee.com/globtelchat</a> ☕❤️</p>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <!-- RP POP-UP OKNO -->
-    <div id="rp-popup-modal" class="modal-overlay" onclick="if(event.target === this) zatvoritRPOkno()">
+    <!-- RP POP-UP WINDOW -->
+    <div id="rp-popup-modal" class="modal-overlay" onclick="if(event.target === this) closeRPWindow()">
         <div class="rp-box">
             <div class="rp-header">
-                <span id="rp-title">📩 Súkromná správa (DM)</span>
-                <button class="rp-close-btn" onclick="zatvoritRPOkno()">✖</button>
+                <span id="rp-title">📩 Direct Message (DM)</span>
+                <button class="rp-close-btn" onclick="closeRPWindow()">✖</button>
             </div>
             <div id="rp-messages-box" class="rp-messages-box"></div>
             <div class="rp-input-area">
-                <input type="text" id="rp-input" placeholder="Napíš správu..." onkeypress="skontrolovatRPEnter(event)">
-                <button onclick="poslatRPSpravu()">Poslať</button>
+                <input type="text" id="rp-input" placeholder="Type a message..." onkeypress="checkRPEnter(event)">
+                <button onclick="sendRPMsg()">Send</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal pre zväčšenie fotky -->
-    <div id="image-modal" class="modal-overlay" onclick="zatvoritFotku()" style="z-index:999; cursor:pointer;">
+    <!-- Image Zoom Modal -->
+    <div id="image-modal" class="modal-overlay" onclick="closePhotoModal()" style="z-index:999; cursor:pointer;">
         <img id="modal-img" style="max-width:90%; max-height:90%; border:2px solid var(--border-color); box-shadow:0 0 20px rgba(0,0,0,0.8); border-radius:12px; object-fit:contain;">
     </div>
 
-    <!-- Modal pre Profilovú Kartu -->
-    <div id="profile-modal" class="modal-overlay" onclick="if(event.target === this) zatvoritProfil()">
+    <!-- Profile Card Modal -->
+    <div id="profile-modal" class="modal-overlay" onclick="if(event.target === this) closeProfileModal()">
         <div class="profile-card-modal">
             <img id="card-avatar" class="profile-card-avatar" src="" alt="Avatar">
             <h3 id="card-username" style="color:var(--text-main); margin-bottom:12px; font-weight:600;"></h3>
@@ -901,42 +901,42 @@
             <p id="card-city" style="margin-bottom:6px; color:var(--text-muted); font-size:0.9rem;"></p>
             <p id="card-about" style="color:var(--text-main); font-style:italic; border-top:1px solid var(--border-color); padding-top:10px; margin-top:10px; font-size:0.9rem;"></p>
             
-            <button class="btn" style="margin-top:18px;" id="card-pm-btn">Napísať správu</button>
+            <button class="btn" style="margin-top:18px;" id="card-pm-btn">Send Message</button>
             
             <div id="card-admin-actions" style="display:none; margin-top:12px; gap:8px; justify-content:center;">
                 <button class="btn-kick" id="card-kick-btn">KICK</button>
                 <button class="btn-ban" id="card-ban-btn">BAN</button>
             </div>
 
-            <button class="btn btn-avatar" style="margin-top:8px;" onclick="zatvoritProfil()">Zatvoriť</button>
+            <button class="btn btn-avatar" style="margin-top:8px;" onclick="closeProfileModal()">Close</button>
         </div>
     </div>
 
-    <!-- Modal pre Úpravu profilu -->
-    <div id="edit-profile-modal" class="modal-overlay" onclick="if(event.target === this) zatvoritEditorProfilu()">
+    <!-- Profile Editor Modal -->
+    <div id="edit-profile-modal" class="modal-overlay" onclick="if(event.target === this) closeProfileEditor()">
         <div class="profile-card-modal">
-            <h3 style="color:var(--text-main); margin-bottom:18px; font-size:1.2rem; font-weight:600;">Úprava profilu</h3>
+            <h3 style="color:var(--text-main); margin-bottom:18px; font-size:1.2rem; font-weight:600;">Edit Profile</h3>
             
             <div class="form-group">
-                <label>Vek:</label>
-                <input type="number" id="edit-age" placeholder="Napr. 25">
+                <label>Age:</label>
+                <input type="number" id="edit-age" placeholder="e.g. 25">
             </div>
             <div class="form-group" style="margin-top:12px;">
-                <label>Mesto:</label>
-                <input type="text" id="edit-city" placeholder="Napr. Bratislava">
+                <label>City:</label>
+                <input type="text" id="edit-city" placeholder="e.g. New York">
             </div>
             <div class="form-group" style="margin-top:12px;">
-                <label>O mne:</label>
-                <input type="text" id="edit-about" placeholder="Napr. Web developer...">
+                <label>About me:</label>
+                <input type="text" id="edit-about" placeholder="e.g. Web developer...">
             </div>
 
-            <button class="btn" style="margin-top:18px;" onclick="ulozitProfil()">Uložiť</button>
-            <button class="btn btn-avatar" style="margin-top:8px;" onclick="zatvoritEditorProfilu()">Zrušiť</button>
+            <button class="btn" style="margin-top:18px;" onclick="saveProfile()">Save</button>
+            <button class="btn btn-avatar" style="margin-top:8px;" onclick="closeProfileEditor()">Cancel</button>
         </div>
     </div>
 
-    <!-- MINIKARTA -->
-    <div id="pokec-hover-card" onmouseenter="pomenutKarta(true)" onmouseleave="pomenutKarta(false)">
+    <!-- HOVER MINI CARD -->
+    <div id="pokec-hover-card" onmouseenter="hoverCardState(true)" onmouseleave="hoverCardState(false)">
         <div class="pokec-card-header"></div>
         <div class="pokec-card-body">
             <img id="hover-avatar" class="pokec-card-avatar" src="" alt="Avatar">
@@ -946,17 +946,17 @@
             </div>
         </div>
         <div class="pokec-card-footer">
-            <button class="pokec-card-btn" id="hover-pm-btn">Napísať správu</button>
+            <button class="pokec-card-btn" id="hover-pm-btn">Send Message</button>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        let mojeMeno = "";
-        let mojeRola = "user";
-        let aktivnyRPUser = null; 
-        let aktualnaMiestnost = "zoznamka";
+        let myUsername = "";
+        let myRole = "user";
+        let activeRPUser = null; 
+        let currentRoom = "dating";
         const rpHistories = {}; 
 
         let hoverTimeout = null;
@@ -974,8 +974,8 @@
                 .replace(/'/g, "&#039;");
         }
 
-        /* --- MOBILNÉ PREPÍNANIE POHĽADOV --- */
-        function prepnulMobilnyPohlad(pohlad) {
+        /* --- MOBILE VIEW SWITCHING --- */
+        function switchMobileView(view) {
             const container = document.getElementById('chat-layout-container');
             container.classList.remove('show-rooms', 'show-users');
             
@@ -983,10 +983,10 @@
             document.getElementById('m-btn-chat').classList.remove('active');
             document.getElementById('m-btn-users').classList.remove('active');
 
-            if (pohlad === 'rooms') {
+            if (view === 'rooms') {
                 container.classList.add('show-rooms');
                 document.getElementById('m-btn-rooms').classList.add('active');
-            } else if (pohlad === 'users') {
+            } else if (view === 'users') {
                 container.classList.add('show-users');
                 document.getElementById('m-btn-users').classList.add('active');
             } else {
@@ -994,49 +994,49 @@
             }
         }
 
-        /* --- PREPÍNANIE MIESTNOSTÍ --- */
-        function zmenMiestnost(roomKey, roomName, element) {
+        /* --- ROOM SWITCHING --- */
+        function changeRoom(roomKey, roomName, element) {
             document.querySelectorAll('#rooms-list li').forEach(li => li.classList.remove('active'));
             element.classList.add('active');
 
-            aktualnaMiestnost = roomKey;
-            document.getElementById('kanal-nazov').innerText = `Kanál: ${roomName}`;
-            document.getElementById('sprava-input').placeholder = `Napíš správu do miestnosti ${roomName}...`;
+            currentRoom = roomKey;
+            document.getElementById('channel-name').innerText = `Channel: ${roomName}`;
+            document.getElementById('message-input').placeholder = `Type a message to ${roomName} room...`;
 
             socket.emit('switch room', roomKey);
 
             if (window.innerWidth <= 900) {
-                prepnulMobilnyPohlad('chat');
+                switchMobileView('chat');
             }
         }
 
-        /* --- RP POP-UP OKNO LOGIKA --- */
-        function otvoritRPOkno(targetUser) {
-            if (!targetUser || targetUser === mojeMeno) return;
+        /* --- RP POP-UP WINDOW LOGIC --- */
+        function openRPWindow(targetUser) {
+            if (!targetUser || targetUser === myUsername) return;
             
-            aktivnyRPUser = targetUser;
-            document.getElementById('rp-title').innerText = `📩 Súkromná správa: ${targetUser}`;
+            activeRPUser = targetUser;
+            document.getElementById('rp-title').innerText = `📩 Direct Message: ${targetUser}`;
             document.getElementById('rp-popup-modal').style.display = 'flex';
             
-            prikreslitRPHistoriu();
+            renderRPHistory();
             document.getElementById('rp-input').focus();
         }
 
-        function zatvoritRPOkno() {
+        function closeRPWindow() {
             document.getElementById('rp-popup-modal').style.display = 'none';
-            aktivnyRPUser = null;
+            activeRPUser = null;
         }
 
-        function prikreslitRPHistoriu() {
+        function renderRPHistory() {
             const box = document.getElementById('rp-messages-box');
             box.innerHTML = '';
             
-            if (!aktivnyRPUser || !rpHistories[aktivnyRPUser]) return;
+            if (!activeRPUser || !rpHistories[activeRPUser]) return;
 
-            rpHistories[aktivnyRPUser].forEach(msg => {
+            rpHistories[activeRPUser].forEach(msg => {
                 const msgEl = document.createElement('div');
                 msgEl.classList.add('rp-msg');
-                if (msg.user === mojeMeno) {
+                if (msg.user === myUsername) {
                     msgEl.classList.add('my-rp');
                 } else {
                     msgEl.classList.add('their-rp');
@@ -1048,69 +1048,69 @@
             box.scrollTop = box.scrollHeight;
         }
 
-        function poslatRPSpravu() {
+        function sendRPMsg() {
             const input = document.getElementById('rp-input');
             const text = input.value.trim();
-            if (text !== "" && aktivnyRPUser) {
+            if (text !== "" && activeRPUser) {
                 const msgObj = {
-                    user: mojeMeno,
-                    target: aktivnyRPUser,
+                    user: myUsername,
+                    target: activeRPUser,
                     text: text,
                     isPrivate: true
                 };
 
                 socket.emit('chat message', {
                     text: text,
-                    recipient: aktivnyRPUser
+                    recipient: activeRPUser
                 });
 
-                if (!rpHistories[aktivnyRPUser]) rpHistories[aktivnyRPUser] = [];
-                rpHistories[aktivnyRPUser].push(msgObj);
+                if (!rpHistories[activeRPUser]) rpHistories[activeRPUser] = [];
+                rpHistories[activeRPUser].push(msgObj);
 
-                prikreslitRPHistoriu();
+                renderRPHistory();
                 input.value = "";
             }
         }
 
-        function skontrolovatRPEnter(e) {
-            if (e.key === 'Enter') poslatRPSpravu();
+        function checkRPEnter(e) {
+            if (e.key === 'Enter') sendRPMsg();
         }
 
-        /* --- OSTATNÉ MODÁLNE OKNÁ A CHAT --- */
-        function pridajSmajlika(emoji) {
-            const input = document.getElementById('sprava-input');
+        /* --- OTHER MODALS & CHAT --- */
+        function addEmoji(emoji) {
+            const input = document.getElementById('message-input');
             input.value += emoji;
             input.focus();
         }
 
-        function zvacsitFotku(url) {
+        function openPhotoModal(url) {
             const modal = document.getElementById('image-modal');
             const modalImg = document.getElementById('modal-img');
             modalImg.src = url;
             modal.style.display = 'flex';
         }
 
-        function zatvoritFotku() {
+        function closePhotoModal() {
             document.getElementById('image-modal').style.display = 'none';
         }
 
-        function otvoritProfil(username) {
+        function openProfile(username) {
             socket.emit('get profile', username);
         }
 
-        function zatvoritProfil() {
+        function closeProfileModal() {
             document.getElementById('profile-modal').style.display = 'none';
         }
 
-        function otvoritEditorProfilu() {
+        function openProfileEditor() {
             document.getElementById('edit-profile-modal').style.display = 'flex';
         }
 
-        function zatvoritEditorProfilu() {
+        function closeProfileEditor() {
             document.getElementById('edit-profile-modal').style.display = 'none';
         }
 
-        async function ulozitProfil() {
+        async function saveProfile() {
             const age = document.getElementById('edit-age').value;
             const city = document.getElementById('edit-city').value;
             const about = document.getElementById('edit-about').value;
@@ -1119,18 +1119,18 @@
                 const res = await fetch('/api/profile/update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: mojeMeno, age, city, about })
+                    body: JSON.stringify({ username: myUsername, age, city, about })
                 });
 
                 const data = await res.json();
                 if (data.success) {
-                    alert("Profil bol úspešne aktualizovaný!");
-                    zatvoritEditorProfilu();
+                    alert("Profile updated successfully!");
+                    closeProfileEditor();
                 } else {
-                    alert("Chyba pri ukladaní profilu.");
+                    alert("Error saving profile.");
                 }
             } catch (e) {
-                alert("Server je nedostupný.");
+                alert("Server unavailable.");
             }
         }
 
@@ -1138,36 +1138,36 @@
             const adminTag = data.role === 'admin' ? ' <span class="admin-badge">[ADMIN]</span>' : '';
             document.getElementById('card-username').innerHTML = escapeHtml(data.username) + adminTag;
             document.getElementById('card-avatar').src = data.profile?.avatar || 'https://via.placeholder.com/90/1e293b/38bdf8?text=User';
-            document.getElementById('card-gender').innerText = 'Pohlavie: ' + (data.profile?.gender === 'female' ? 'Žena ♀' : 'Muž ♂');
-            document.getElementById('card-age').innerText = 'Vek: ' + (data.profile?.age || 'Nezadaný');
-            document.getElementById('card-city').innerText = 'Mesto: ' + (data.profile?.city ? escapeHtml(data.profile.city) : 'Nezadané');
-            document.getElementById('card-about').innerText = 'O mne: ' + (data.profile?.about ? escapeHtml(data.profile.about) : 'Ahoj!');
+            document.getElementById('card-gender').innerText = 'Gender: ' + (data.profile?.gender === 'female' ? 'Female ♀' : 'Male ♂');
+            document.getElementById('card-age').innerText = 'Age: ' + (data.profile?.age || 'Not specified');
+            document.getElementById('card-city').innerText = 'City: ' + (data.profile?.city ? escapeHtml(data.profile.city) : 'Not specified');
+            document.getElementById('card-about').innerText = 'About: ' + (data.profile?.about ? escapeHtml(data.profile.about) : 'Hello!');
 
             const pmBtn = document.getElementById('card-pm-btn');
             const adminActions = document.getElementById('card-admin-actions');
 
-            if (data.username === mojeMeno) {
+            if (data.username === myUsername) {
                 pmBtn.style.display = 'none';
                 adminActions.style.display = 'none';
             } else {
                 pmBtn.style.display = 'inline-block';
                 pmBtn.onclick = () => {
-                    zatvoritProfil();
-                    otvoritRPOkno(data.username);
+                    closeProfileModal();
+                    openRPWindow(data.username);
                 };
 
-                if (mojeRola === 'admin') {
+                if (myRole === 'admin') {
                     adminActions.style.display = 'flex';
                     document.getElementById('card-kick-btn').onclick = () => {
-                        if (confirm(`Naozaj chceš vyhodiť používateľa ${data.username}?`)) {
+                        if (confirm(`Are you sure you want to kick ${data.username}?`)) {
                             socket.emit('admin kick user', data.username);
-                            zatvoritProfil();
+                            closeProfileModal();
                         }
                     };
                     document.getElementById('card-ban-btn').onclick = () => {
-                        if (confirm(`Naozaj chceš dať BAN používateľovi ${data.username}?`)) {
+                        if (confirm(`Are you sure you want to BAN ${data.username}?`)) {
                             socket.emit('admin ban user', data.username);
-                            zatvoritProfil();
+                            closeProfileModal();
                         }
                     };
                 } else {
@@ -1178,15 +1178,15 @@
             document.getElementById('profile-modal').style.display = 'flex';
         });
 
-        /* --- HOVER MINIKARTA LOGIKA --- */
-        function ukaziKarta(e, username) {
+        /* --- HOVER MINI CARD LOGIC --- */
+        function showHoverCard(e, username) {
             clearTimeout(hoverTimeout);
             mouseX = e.clientX + 12;
             mouseY = e.clientY + 12;
             socket.emit('get hover profile', username);
         }
 
-        function skrytcKarta() {
+        function hideHoverCard() {
             hoverTimeout = setTimeout(() => {
                 if (!isHoveringCard) {
                     document.getElementById('pokec-hover-card').style.display = 'none';
@@ -1194,9 +1194,9 @@
             }, 300);
         }
 
-        function pomenutKarta(isHover) {
+        function hoverCardState(isHover) {
             isHoveringCard = isHover;
-            if (!isHover) skrytcKarta();
+            if (!isHover) hideHoverCard();
         }
 
         socket.on('show hover profile', (data) => {
@@ -1204,21 +1204,21 @@
             const adminBadge = data.role === 'admin' ? ' [ADMIN]' : '';
             document.getElementById('hover-username').innerText = data.username + adminBadge;
             
-            const genderStr = data.profile?.gender === 'female' ? 'Žena' : 'Muž';
-            const ageStr = data.profile?.age ? `, ${data.profile.age} r.` : '';
+            const genderStr = data.profile?.gender === 'female' ? 'Female' : 'Male';
+            const ageStr = data.profile?.age ? `, ${data.profile.age} yrs` : '';
             const cityStr = data.profile?.city ? ` / ${escapeHtml(data.profile.city)}` : '';
             
             document.getElementById('hover-details').innerText = `${genderStr}${ageStr}${cityStr}`;
             document.getElementById('hover-avatar').src = data.profile?.avatar || 'https://via.placeholder.com/55/1e293b/38bdf8?text=User';
 
             const pmBtn = document.getElementById('hover-pm-btn');
-            if (data.username === mojeMeno) {
+            if (data.username === myUsername) {
                 pmBtn.style.display = 'none';
             } else {
                 pmBtn.style.display = 'inline-block';
                 pmBtn.onclick = () => {
                     card.style.display = 'none';
-                    otvoritRPOkno(data.username);
+                    openRPWindow(data.username);
                 };
             }
 
@@ -1227,18 +1227,18 @@
             card.style.display = 'block';
         });
 
-        function preopnutFormulare(typ) {
-            document.getElementById('login-card').style.display = typ === 'login' ? 'block' : 'none';
-            document.getElementById('register-card').style.display = typ === 'register' ? 'block' : 'none';
+        function switchForms(type) {
+            document.getElementById('login-card').style.display = type === 'login' ? 'block' : 'none';
+            document.getElementById('register-card').style.display = type === 'register' ? 'block' : 'none';
         }
 
-        async function spustitRegistraciu() {
+        async function startRegistration() {
             const username = document.getElementById('register-username').value.trim();
             const password = document.getElementById('register-password').value.trim();
             const gender = document.getElementById('register-gender').value;
 
             if (!username || !password) {
-                alert("Vyplň meno aj heslo!");
+                alert("Please fill in both username and password!");
                 return;
             }
 
@@ -1250,19 +1250,19 @@
             const data = await res.json();
             
             if (data.success) {
-                alert("Registrácia úspešná! Môžeš sa prihlásiť.");
-                preopnutFormulare('login');
+                alert("Registration successful! You can now log in.");
+                switchForms('login');
             } else {
-                alert(data.message || "Chyba pri registrácii");
+                alert(data.message || "Registration error");
             }
         }
 
-        async function spustitPrihlasenie() {
+        async function startLogin() {
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value.trim();
 
             if (!username || !password) {
-                alert("Vyplň meno aj heslo!");
+                alert("Please fill in both username and password!");
                 return;
             }
 
@@ -1274,19 +1274,19 @@
             const data = await res.json();
 
             if (data.success) {
-                mojeMeno = data.username;
-                mojeRola = data.role || 'user';
+                myUsername = data.username;
+                myRole = data.role || 'user';
 
                 document.getElementById('auth-interface').style.display = 'none';
                 document.getElementById('chat-interface').style.display = 'block';
                 
-                socket.emit('user logged in', mojeMeno);
+                socket.emit('user logged in', myUsername);
             } else {
-                alert(data.message || "Nesprávne prihlasovacie údaje");
+                alert(data.message || "Incorrect credentials");
             }
         }
 
-        async function nahratFotku(event) {
+        async function uploadPhoto(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -1307,108 +1307,107 @@
                 if (data.secure_url) {
                     socket.emit('change avatar', data.secure_url);
                 } else if (data.error) {
-                    alert("Chyba z Cloudinary: " + data.error.message);
+                    alert("Cloudinary error: " + data.error.message);
                 }
             } catch (err) {
-                alert("Chyba pri nahrávaní obrázka!");
+                alert("Error uploading image!");
             }
         }
 
-        // OPRAVENÁ FUNKCIA NA ODOSIELANIE SPRÁV DO MIESTNOSTI
-        function poslatSpravu() {
-            const input = document.getElementById('sprava-input');
+        function sendMessage() {
+            const input = document.getElementById('message-input');
             const text = input.value.trim();
             if (text !== "") {
                 socket.emit('chat message', {
                     text: text,
-                    recipient: null // Nastavené na null, aby server vedel, že ide o verejnú správu v miestnosti
+                    recipient: null 
                 });
                 input.value = "";
             }
         }
 
-        function skontrolovatEnter(e) {
-            if (e.key === 'Enter') poslatSpravu();
+        function checkEnter(e) {
+            if (e.key === 'Enter') sendMessage();
         }
 
-        function odhlasitSa() {
+        function logoutUser() {
             location.reload(); 
         }
 
-        function vykreslitSpravu(msg) {
+        function renderMessage(msg) {
             if (msg.isPrivate) {
-                const partner = (msg.user === mojeMeno) ? msg.target : msg.user;
+                const partner = (msg.user === myUsername) ? msg.target : msg.user;
                 if (!rpHistories[partner]) rpHistories[partner] = [];
                 
-                const vyhovuje = rpHistories[partner].some(m => m.text === msg.text && m.user === msg.user);
-                if (!vyhovuje) {
+                const matches = rpHistories[partner].some(m => m.text === msg.text && m.user === msg.user);
+                if (!matches) {
                     rpHistories[partner].push(msg);
                 }
 
-                if (aktivnyRPUser === partner) {
-                    prikreslitRPHistoriu();
-                } else if (msg.user !== mojeMeno) {
-                    otvoritRPOkno(partner);
+                if (activeRPUser === partner) {
+                    renderRPHistory();
+                } else if (msg.user !== myUsername) {
+                    openRPWindow(partner);
                 }
                 return;
             }
 
-            const box = document.getElementById('spravy-box');
+            const box = document.getElementById('messages-box');
             const msgEl = document.createElement('div');
             msgEl.classList.add('message');
             
             const safeUser = escapeHtml(msg.user);
             const safeText = escapeHtml(msg.text);
-            const casHtml = msg.time ? `<span class="time">${escapeHtml(msg.time)}</span>` : '';
-            const avatarHtml = msg.avatar ? `<img src="${escapeHtml(msg.avatar)}" class="msg-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeUser}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${escapeHtml(msg.avatar)}')">` : '';
+            const timeHtml = msg.time ? `<span class="time">${escapeHtml(msg.time)}</span>` : '';
+            const avatarHtml = msg.avatar ? `<img src="${escapeHtml(msg.avatar)}" class="msg-avatar-img" style="cursor:pointer;" onmouseenter="showHoverCard(event, '${safeUser}')" onmouseleave="hideHoverCard()" onclick="event.stopPropagation(); openPhotoModal('${escapeHtml(msg.avatar)}')">` : '';
             const adminTag = msg.role === 'admin' ? '<span class="admin-badge">[ADMIN]</span>' : '';
 
-            let autorText = `<span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeUser}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${safeUser}')">${safeUser}</span>${adminTag}`;
+            let authorText = `<span style="cursor:pointer;" onmouseenter="showHoverCard(event, '${safeUser}')" onmouseleave="hideHoverCard()" onclick="event.stopPropagation(); openProfile('${safeUser}')">${safeUser}</span>${adminTag}`;
 
-            msgEl.innerHTML = `<div class="author"><span>${avatarHtml}${autorText}</span>${casHtml}</div><div>${safeText}</div>`;
+            msgEl.innerHTML = `<div class="author"><span>${avatarHtml}${authorText}</span>${timeHtml}</div><div>${safeText}</div>`;
             
             box.appendChild(msgEl);
             box.scrollTop = box.scrollHeight;
         }
 
-        socket.on('chat history', (historia) => {
-            const box = document.getElementById('spravy-box');
+        socket.on('chat history', (history) => {
+            const box = document.getElementById('messages-box');
             box.innerHTML = ''; 
-            historia.forEach(msg => vykreslitSpravu(msg));
+            history.forEach(msg => renderMessage(msg));
         });
 
         socket.on('chat message', (msg) => {
-            vykreslitSpravu(msg);
+            renderMessage(msg);
         });
 
         socket.on('update userlist', (list) => {
-            const uList = document.getElementById('pouzivatelia-list');
+            const uList = document.getElementById('users-list');
             uList.innerHTML = "";
             list.forEach(u => {
                 const li = document.createElement('li');
-                const ikona = u.gender === 'female' ? '♀️' : '♂️';
+                const icon = u.gender === 'female' ? '♀️' : '♂️';
                 const adminTag = u.role === 'admin' ? '<span class="admin-badge">[ADMIN]</span>' : '';
                 const safeName = escapeHtml(u.username);
                 
                 let avatarElement = '';
                 if (u.avatar) {
-                    avatarElement = `<img src="${escapeHtml(u.avatar)}" class="user-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${escapeHtml(u.avatar)}')">`;
+                    avatarElement = `<img src="${escapeHtml(u.avatar)}" class="user-avatar-img" style="cursor:pointer;" onmouseenter="showHoverCard(event, '${safeName}')" onmouseleave="hideHoverCard()" onclick="event.stopPropagation(); openPhotoModal('${escapeHtml(u.avatar)}')">`;
                 }
 
-                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${safeName}')">${ikona} ${safeName}${adminTag}</span>`;
+                li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="showHoverCard(event, '${safeName}')" onmouseleave="hideHoverCard()" onclick="event.stopPropagation(); openProfile('${safeName}')">${icon} ${safeName}${adminTag}</span>`;
                 
-                li.onclick = () => otvoritRPOkno(u.username);
+                li.onclick = () => openRPWindow(u.username);
                 uList.appendChild(li);
             });
         });
 
         socket.on('kicked out', () => {
-            alert('Bol si vyhodený z chatu adminom!');
+            alert('You have been kicked from the chat by an admin!');
             location.reload();
         });
 
         socket.on('banned out', () => {
-            alert('Tvoj účet bol zablokovaný (BAN)!');
+            alert('Your account has been banned!');
             location.reload();
         });
     </script>
