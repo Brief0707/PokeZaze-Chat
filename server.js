@@ -391,4 +391,3 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Globtel Chat is running on port ${PORT} 🚀`);
 });
-```[cite: 7]
