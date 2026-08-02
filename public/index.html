@@ -952,7 +952,7 @@
         let mojeMeno = "";
         let mojeRola = "user";
         let aktivnyRPUser = null; 
-        let aktualnaMiestnost = "zoznamka"; // Sleduje aktuálne aktívnu miestnosť
+        let aktualnaMiestnost = "zoznamka";
         const rpHistories = {}; 
 
         let hoverTimeout = null;
@@ -995,7 +995,7 @@
             document.querySelectorAll('#rooms-list li').forEach(li => li.classList.remove('active'));
             element.classList.add('active');
 
-            aktualnaMiestnost = roomKey; // Uloženie aktuálnej miestnosti
+            aktualnaMiestnost = roomKey;
             document.getElementById('kanal-nazov').innerText = `Kanál: ${roomName}`;
             document.getElementById('sprava-input').placeholder = `Napíš správu do miestnosti ${roomName}...`;
 
@@ -1310,13 +1310,14 @@
             }
         }
 
+        // OPRAVENÁ FUNKCIA NA ODOSIELANIE SPRÁV DO MIESTNOSTI
         function poslatSpravu() {
             const input = document.getElementById('sprava-input');
             const text = input.value.trim();
             if (text !== "") {
                 socket.emit('chat message', {
                     text: text,
-                    recipient: aktualnaMiestnost // Odosiela sa do správnej aktívnej miestnosti
+                    recipient: null // Nastavené na null, aby server vedel, že ide o verejnú správu v miestnosti
                 });
                 input.value = "";
             }
@@ -1390,7 +1391,6 @@
                     avatarElement = `<img src="${escapeHtml(u.avatar)}" class="user-avatar-img" style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); zvacsitFotku('${escapeHtml(u.avatar)}')">`;
                 }
 
-                // Opravený preklep z "ukaziK_karta" na správnu funkciu "ukaziKarta"
                 li.innerHTML = `${avatarElement} <span style="cursor:pointer;" onmouseenter="ukaziKarta(event, '${safeName}')" onmouseleave="skrytcKarta()" onclick="event.stopPropagation(); otvoritProfil('${safeName}')">${ikona} ${safeName}${adminTag}</span>`;
                 
                 li.onclick = () => otvoritRPOkno(u.username);
