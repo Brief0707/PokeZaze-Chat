@@ -10,7 +10,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json({ limit: '10mb' })); // Increased limit to accept base64 image strings
+app.use(express.json()); // Standard JSON body parsing
 
 // --- MONGODB ATLAS CONNECTION ---
 const mongoURI = process.env.MONGO_URI;
@@ -169,19 +169,6 @@ app.post('/api/profile/update', async (req, res) => {
     } catch (err) {
         console.error("Profile update error:", err);
         res.json({ success: false, message: "Server error" });
-    }
-});
-
-// --- IMAGE UPLOAD (MODERATION BYPASSED) ---
-app.post('/api/upload-image', async (req, res) => {
-    try {
-        const { imageUrl } = req.body;
-        if (!imageUrl) return res.json({ success: false, error: 'No image provided.' });
-
-        return res.json({ success: true, imageUrl });
-    } catch (err) {
-        console.error('Upload error:', err);
-        res.status(500).json({ success: false, error: 'Image upload failed.' });
     }
 });
 
