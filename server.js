@@ -4,13 +4,19 @@ const { Server } = require('socket.io');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const { OpenAI } = require('openai'); // Added OpenAI
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Increased limit to accept base64 image strings
+
+// --- OPENAI SETUP ---
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY_HERE'
+});
 
 // --- MONGODB ATLAS CONNECTION ---
 const mongoURI = process.env.MONGO_URI;
@@ -169,6 +175,39 @@ app.post('/api/profile/update', async (req, res) => {
     } catch (err) {
         console.error("Profile update error:", err);
         res.json({ success: false, message: "Server error" });
+    }
+});
+
+// --- IMAGE UPLOAD & OPENAI MODERATION ENDPOINT ---
+app.post('/api/upload-image', async (req, res) => {
+    try {
+        const { imageUrl } = req.body;
+        if (!imageUrl) return res.json({ success: false, error: 'No image provided.' });
+
+        // Call OpenAI's free omni-moderation model
+        const moderation = await openai.moderations.create({
+            model: 'omni-moderation-latest',
+            input: [
+                {
+                    type: 'image_url',
+                    image_url: { url: imageUrl }
+                }
+            ]
+        });
+
+        const result = moderation.results[0];
+
+        if (result.flagged) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Image rejected: violates safety guidelines.' 
+            });
+        }
+
+        return res.json({ success: true, imageUrl });
+    } catch (err) {
+        console.error('Moderation error:', err);
+        res.status(500).json({ success: false, error: 'Moderation check failed.' });
     }
 });
 
@@ -391,4 +430,3 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Globtel Chat is running on port ${PORT} 🚀`);
 });
-// test update

@@ -845,7 +845,12 @@
                         <button class="emoji-btn" onclick="addEmoji('⚡')">⚡</button>
                         <button class="emoji-btn" onclick="addEmoji('😜')">😜</button>
                     </div>
+                    
+                    <!-- Hidden file picker for chat image uploads -->
+                    <input type="file" id="chatImageInput" accept="image/png, image/jpeg, image/webp" style="display: none;" onchange="handleChatImageUpload(event)">
+                    
                     <div class="input-row">
+                        <button type="button" class="emoji-btn" onclick="document.getElementById('chatImageInput').click()" title="Share Image">📷</button>
                         <input type="text" id="message-input" placeholder="Type a message to Dating room..." onkeypress="checkEnter(event)">
                         <button onclick="sendMessage()">Send</button>
                     </div>
@@ -1041,7 +1046,7 @@
                 } else {
                     msgEl.classList.add('their-rp');
                 }
-                msgEl.innerText = msg.text;
+                msgEl.innerHTML = msg.text; // Allows displaying images inside DMs if needed
                 box.appendChild(msgEl);
             });
 
@@ -1314,6 +1319,47 @@
             }
         }
 
+        /* --- OPENAI IMAGE MODERATION & CHAT UPLOAD --- */
+        async function handleChatImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                const base64Data = e.target.result;
+
+                try {
+                    const res = await fetch('/api/upload-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageUrl: base64Data })
+                    });
+
+                    const data = await res.json();
+
+                    if (!data.success) {
+                        alert(data.error); // Rejected by OpenAI AI moderation!
+                    } else {
+                        // Passed moderation! Send image tag into chat
+                        socket.emit('chat message', {
+                            text: `<img src="${data.imageUrl}" style="max-width:200px; border-radius:8px; cursor:pointer;" onclick="openPhotoModal('${data.imageUrl}')">`,
+                            recipient: null
+                        });
+                    }
+                } catch (err) {
+                    console.error('Upload error:', err);
+                    alert('Failed to upload image.');
+                }
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; // Reset file input
+        }
+
         function sendMessage() {
             const input = document.getElementById('message-input');
             const text = input.value.trim();
@@ -1357,14 +1403,14 @@
             msgEl.classList.add('message');
             
             const safeUser = escapeHtml(msg.user);
-            const safeText = escapeHtml(msg.text);
+            // Note: msg.text can contain safe HTML tags like images since it's already pre-moderated and generated via code
             const timeHtml = msg.time ? `<span class="time">${escapeHtml(msg.time)}</span>` : '';
             const avatarHtml = msg.avatar ? `<img src="${escapeHtml(msg.avatar)}" class="msg-avatar-img" style="cursor:pointer;" onmouseenter="showHoverCard(event, '${safeUser}')" onmouseleave="hideHoverCard()" onclick="event.stopPropagation(); openPhotoModal('${escapeHtml(msg.avatar)}')">` : '';
             const adminTag = msg.role === 'admin' ? '<span class="admin-badge">[ADMIN]</span>' : '';
 
             let authorText = `<span style="cursor:pointer;" onmouseenter="showHoverCard(event, '${safeUser}')" onmouseleave="hideHoverCard()" onclick="event.stopPropagation(); openProfile('${safeUser}')">${safeUser}</span>${adminTag}`;
 
-            msgEl.innerHTML = `<div class="author"><span>${avatarHtml}${authorText}</span>${timeHtml}</div><div>${safeText}</div>`;
+            msgEl.innerHTML = `<div class="author"><span>${avatarHtml}${authorText}</span>${timeHtml}</div><div>${msg.text}</div>`;
             
             box.appendChild(msgEl);
             box.scrollTop = box.scrollHeight;
